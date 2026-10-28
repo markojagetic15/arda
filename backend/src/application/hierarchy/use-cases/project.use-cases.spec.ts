@@ -1,11 +1,14 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 
+import { InMemoryDocumentSnapshotRepository } from '../../../../test/fakes/in-memory-document-snapshot.repository.js';
+import { InMemoryMembershipRepository } from '../../../../test/fakes/in-memory-membership.repository.js';
 import { InMemoryPageRepository } from '../../../../test/fakes/in-memory-page.repository.js';
 import { InMemoryProjectRepository } from '../../../../test/fakes/in-memory-project.repository.js';
 import { InMemorySpaceRepository } from '../../../../test/fakes/in-memory-space.repository.js';
 import { SpaceNotFoundError } from '../../../domain/hierarchy/hierarchy.errors.js';
 import { PageType } from '../../../domain/hierarchy/page-type.js';
 import { Space } from '../../../domain/hierarchy/space.model.js';
+import { AccessService } from '../../access/access.service.js';
 import { CreateProjectUseCase } from './create-project.use-case.js';
 import { DuplicateProjectUseCase } from './duplicate-project.use-case.js';
 import { MoveProjectUseCase } from './move-project.use-case.js';
@@ -23,15 +26,28 @@ describe('Project use cases', () => {
     spaceRepository = new InMemorySpaceRepository();
     projectRepository = new InMemoryProjectRepository(spaceRepository);
     pageRepository = new InMemoryPageRepository(projectRepository);
+    const access = new AccessService(
+      spaceRepository,
+      projectRepository,
+      pageRepository,
+      new InMemoryMembershipRepository(),
+    );
     createProject = new CreateProjectUseCase(
       spaceRepository,
       projectRepository,
       pageRepository,
+      access,
     );
-    moveProject = new MoveProjectUseCase(spaceRepository, projectRepository);
+    moveProject = new MoveProjectUseCase(
+      spaceRepository,
+      projectRepository,
+      access,
+    );
     duplicateProject = new DuplicateProjectUseCase(
       projectRepository,
       pageRepository,
+      new InMemoryDocumentSnapshotRepository(),
+      access,
     );
   });
 

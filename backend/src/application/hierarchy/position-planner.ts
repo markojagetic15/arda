@@ -7,8 +7,7 @@ export interface PositionPlan {
   /** The position to assign to the item being inserted/moved. */
   position: number;
   /**
-   * Non-null when the existing siblings needed fresh positions to make room —
-   * callers must persist `siblings[i].reorder(rebalanced[i])` for each index
+   * Non-null when the existing siblings needed fresh positions to make room - * callers must persist `siblings[i].reorder(rebalanced[i])` for each index
    * before saving the moved/created item at `position`.
    */
   rebalanced: number[] | null;
@@ -16,7 +15,7 @@ export interface PositionPlan {
 
 /**
  * Plans where to place an item among `siblings` (which must NOT include the
- * item itself) at the given 0-based `index` — i.e. "insert before the
+ * item itself) at the given 0-based `index` - i.e. "insert before the
  * sibling currently at this index".
  */
 export function planPosition(

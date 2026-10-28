@@ -2,7 +2,10 @@ import {
   AccessTokenPayload,
   TokenService,
 } from '../../src/application/auth/ports/token.service.js';
-import { Mailer } from '../../src/application/auth/ports/mailer.js';
+import {
+  type EmailMessage,
+  Mailer,
+} from '../../src/application/auth/ports/mailer.js';
 import { PasswordHasher } from '../../src/domain/shared/ports/password-hasher.port.js';
 
 export class FakePasswordHasher extends PasswordHasher {
@@ -27,13 +30,16 @@ export class FakeTokenService extends TokenService {
 }
 
 export class FakeMailer extends Mailer {
-  public readonly sent: Array<{ to: string; resetUrl: string }> = [];
+  public readonly sent: EmailMessage[] = [];
 
-  async sendPasswordResetEmail(input: {
-    to: string;
-    resetUrl: string;
-  }): Promise<void> {
-    this.sent.push(input);
+  async send(message: EmailMessage): Promise<void> {
+    this.sent.push(message);
+  }
+
+  /** The first link in the most recent email's text part. */
+  lastLink(): string {
+    const text = this.sent.at(-1)?.text ?? '';
+    return /https?:\/\/\S+/.exec(text)?.[0] ?? '';
   }
 }
 

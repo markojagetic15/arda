@@ -11,13 +11,14 @@ import { LogoutUseCase } from '../../../application/auth/use-cases/logout.use-ca
 import { RequestPasswordResetUseCase } from '../../../application/auth/use-cases/request-password-reset.use-case.js';
 import { ResetPasswordUseCase } from '../../../application/auth/use-cases/reset-password.use-case.js';
 import { GetProfileUseCase } from '../../../application/user/use-cases/get-profile.use-case.js';
+import { ChangePasswordUseCase } from '../../../application/user/use-cases/change-password.use-case.js';
+import { SendEmailVerificationUseCase } from '../../../application/user/use-cases/send-email-verification.use-case.js';
+import { VerifyEmailUseCase } from '../../../application/user/use-cases/verify-email.use-case.js';
 import { UpdateProfileUseCase } from '../../../application/user/use-cases/update-profile.use-case.js';
-import { Mailer } from '../../../application/auth/ports/mailer.js';
 import { TokenService } from '../../../application/auth/ports/token.service.js';
 import { PasswordHasher } from '../../../domain/shared/ports/password-hasher.port.js';
 import { SessionRepository } from '../../../domain/session/session.repository.js';
 import { UserRepository } from '../../../domain/user/user.repository.js';
-import { ConsoleMailer } from '../../../infrastructure/mail/console-mailer.js';
 import { SessionEntity } from '../../../infrastructure/persistence/session.entity.js';
 import { TypeOrmSessionRepository } from '../../../infrastructure/persistence/session.repository.js';
 import { UserEntity } from '../../../infrastructure/persistence/user.entity.js';
@@ -40,7 +41,6 @@ import { JwtStrategy } from './strategies/jwt.strategy.js';
     { provide: SessionRepository, useClass: TypeOrmSessionRepository },
     { provide: PasswordHasher, useClass: BcryptPasswordHasher },
     { provide: TokenService, useClass: JwtTokenService },
-    { provide: Mailer, useClass: ConsoleMailer },
     JwtStrategy,
     IssueSessionUseCase,
     RegisterUserUseCase,
@@ -51,6 +51,9 @@ import { JwtStrategy } from './strategies/jwt.strategy.js';
     ResetPasswordUseCase,
     GetProfileUseCase,
     UpdateProfileUseCase,
+    ChangePasswordUseCase,
+    SendEmailVerificationUseCase,
+    VerifyEmailUseCase,
   ],
   exports: [TokenService, UserRepository],
 })

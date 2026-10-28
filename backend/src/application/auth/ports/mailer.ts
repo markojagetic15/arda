@@ -1,6 +1,10 @@
+export interface EmailMessage {
+  to: string;
+  subject: string;
+  html: string;
+  text: string;
+}
+
 export abstract class Mailer {
-  abstract sendPasswordResetEmail(input: {
-    to: string;
-    resetUrl: string;
-  }): Promise<void>;
+  abstract send(message: EmailMessage): Promise<void>;
 }

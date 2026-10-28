@@ -1,11 +1,132 @@
 @import "@heroui/styles";
+@import "@fontsource-variable/inter";
+@import "@fontsource-variable/plus-jakarta-sans";
+
+@custom-variant dark (&:where(.dark, .dark *));
 
 @theme {
-  --font-sans: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-sans: "Inter Variable", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-display: "Plus Jakarta Sans Variable", "Inter Variable", system-ui, sans-serif;
+  --color-brand-50: oklch(0.97 0.02 280);
+  --color-brand-100: oklch(0.94 0.04 280);
+  --color-brand-200: oklch(0.88 0.08 280);
+  --color-brand-300: oklch(0.8 0.12 280);
+  --color-brand-400: oklch(0.69 0.17 279);
+  --color-brand-500: oklch(0.59 0.21 277);
+  --color-brand-600: oklch(0.52 0.22 276);
+  --color-brand-700: oklch(0.45 0.2 276);
+  --color-brand-800: oklch(0.37 0.16 277);
+  --color-brand-900: oklch(0.3 0.12 278);
+  --animate-fade-in: fade-in 0.25s ease-out both;
+  --animate-rise: rise 0.5s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+
+  @keyframes fade-in {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  @keyframes rise {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: none; }
+  }
+}
+
+/* Brand palette on top of HeroUI's default theme (unlayered, so it wins). */
+:root {
+  --accent: oklch(0.55 0.215 277);
+  --accent-foreground: oklch(0.99 0 0);
+  --focus: var(--accent);
+  --radius: 0.625rem;
+  --field-radius: 0.625rem;
+  --field-border-width: 1px;
+  --background: oklch(0.985 0.002 280);
+  --foreground: oklch(0.21 0.02 275);
+  --surface: oklch(1 0 0);
+  --surface-secondary: oklch(0.965 0.005 280);
+  --surface-tertiary: oklch(0.945 0.007 280);
+  --overlay: oklch(1 0 0);
+  --muted: oklch(0.52 0.02 275);
+  --default: oklch(0.95 0.005 280);
+  --border: oklch(0.91 0.006 280);
+  --separator: oklch(0.93 0.005 280);
+  --field-background: oklch(1 0 0);
+  --field-border: oklch(0.89 0.008 280);
+  --app-sidebar: oklch(0.975 0.004 280);
+  --app-shadow: 0 1px 2px oklch(0.2 0.02 275 / 0.04), 0 4px 16px oklch(0.2 0.02 275 / 0.06);
+  --app-shadow-lg: 0 2px 6px oklch(0.2 0.02 275 / 0.05), 0 18px 48px oklch(0.2 0.02 275 / 0.12);
+}
+
+.dark {
+  --accent: oklch(0.66 0.19 278);
+  --background: oklch(0.16 0.012 275);
+  --foreground: oklch(0.95 0.005 275);
+  --surface: oklch(0.2 0.014 275);
+  --surface-secondary: oklch(0.235 0.015 275);
+  --surface-tertiary: oklch(0.27 0.016 275);
+  --overlay: oklch(0.22 0.015 275);
+  --muted: oklch(0.7 0.015 275);
+  --default: oklch(0.26 0.015 275);
+  --default-foreground: oklch(0.95 0.005 275);
+  --border: oklch(0.3 0.015 275);
+  --separator: oklch(0.27 0.014 275);
+  --field-background: oklch(0.2 0.014 275);
+  --field-foreground: oklch(0.95 0.005 275);
+  --field-border: oklch(0.32 0.016 275);
+  --app-sidebar: oklch(0.18 0.013 275);
+  --app-shadow: 0 1px 2px oklch(0 0 0 / 0.3), 0 4px 16px oklch(0 0 0 / 0.25);
+  --app-shadow-lg: 0 2px 6px oklch(0 0 0 / 0.3), 0 18px 48px oklch(0 0 0 / 0.45);
 }
 
 html,
 body,
 #root {
   height: 100%;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  font-feature-settings: "cv11", "ss01";
+}
+
+::selection {
+  background: color-mix(in oklab, var(--accent) 22%, transparent);
+}
+
+.font-display {
+  font-family: var(--font-display);
+  letter-spacing: -0.012em;
+  word-spacing: 0.03em;
+}
+
+/* Soft dotted backdrop used behind marketing sections and the empty workspace. */
+.bg-grid {
+  background-image: radial-gradient(color-mix(in oklab, var(--foreground) 9%, transparent) 1px, transparent 1px);
+  background-size: 22px 22px;
+}
+
+.brand-gradient {
+  background-image: linear-gradient(135deg, oklch(0.6 0.22 285), oklch(0.52 0.22 268) 55%, oklch(0.6 0.16 235));
+}
+
+.text-gradient {
+  background-image: linear-gradient(120deg, oklch(0.55 0.23 285), oklch(0.6 0.19 255) 60%, oklch(0.68 0.15 220));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.app-shadow {
+  box-shadow: var(--app-shadow);
+}
+
+.app-shadow-lg {
+  box-shadow: var(--app-shadow-lg);
+}
+
+/* Thin, unobtrusive scrollbars inside the app chrome. */
+.scroll-thin {
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in oklab, var(--foreground) 14%, transparent) transparent;
 }

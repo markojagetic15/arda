@@ -6,7 +6,7 @@ export class MoveNodeDto {
   @IsIn(NODE_KINDS)
   kind: NodeKind;
 
-  /** Null only when `kind` is 'space' — spaces only ever reorder among root spaces. */
+  /** Null only when `kind` is 'space' - spaces only ever reorder among root spaces. */
   @ValidateIf((dto: MoveNodeDto) => dto.kind !== 'space')
   @IsUUID()
   targetParentId: string | null;

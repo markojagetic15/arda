@@ -12,5 +12,7 @@ export function useCreatePage() {
         data ? { nodes: [...data.nodes, page] } : { nodes: [page] },
       )
     },
+    // The server decides the creator's role on the new nodes.
+    onSettled: () => queryClient.invalidateQueries({ queryKey: HIERARCHY_TREE_QUERY_KEY }),
   })
 }

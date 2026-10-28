@@ -6,19 +6,16 @@ import { AuthLayout } from '@/shared/ui/auth-layout'
 export function LoginPage() {
   const navigate = useNavigate()
   const location = useLocation()
-  const from = (location.state as { from?: string } | null)?.from ?? '/profile'
+  const from = (location.state as { from?: string } | null)?.from ?? '/workspace'
 
   return (
     <AuthLayout
-      title="Sign in"
-      description="Welcome back to Arda."
+      title="Welcome back"
+      description="Sign in to pick up where your team left off."
       footer={
         <>
-          <Link to="/forgot-password" className="underline">
-            Forgot password?
-          </Link>
-          <span>·</span>
-          <Link to="/register" className="underline">
+          New to proarda?{' '}
+          <Link to="/register" state={location.state} className="font-semibold text-accent hover:underline">
             Create an account
           </Link>
         </>

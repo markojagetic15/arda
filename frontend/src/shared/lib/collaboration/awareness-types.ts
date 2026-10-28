@@ -5,7 +5,7 @@ export interface AwarenessUser {
 }
 
 export interface CursorPosition {
-  /** 0–100, percentage of the shared surface's width/height. */
+  /** 0-100, percentage of the shared surface's width/height. */
   x: number
   y: number
 }

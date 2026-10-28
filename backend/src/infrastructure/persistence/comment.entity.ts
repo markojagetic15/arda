@@ -3,6 +3,7 @@ import {
   CreateDateColumn,
   Entity,
   Index,
+  JoinColumn,
   ManyToOne,
   PrimaryColumn,
 } from 'typeorm';
@@ -20,6 +21,7 @@ export class CommentEntity {
   pageId: string;
 
   @ManyToOne(() => PageEntity, { onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'page_id' })
   page: PageEntity;
 
   @Column({ name: 'anchor_type', type: 'enum', enum: CommentAnchorType })

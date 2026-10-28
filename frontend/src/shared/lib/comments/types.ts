@@ -9,7 +9,7 @@ export interface Comment {
   authorName: string
   body: string
   createdAt: string
-  /** Meaningful only on the thread's first (earliest) comment — see `isThreadResolved`. */
+  /** Meaningful only on the thread's first (earliest) comment - see `isThreadResolved`. */
   resolved: boolean
 }
 

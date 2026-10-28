@@ -3,6 +3,7 @@ import {
   CreateDateColumn,
   Entity,
   Index,
+  JoinColumn,
   ManyToOne,
   PrimaryColumn,
   UpdateDateColumn,
@@ -24,6 +25,7 @@ export class SpaceEntity {
   parentId: string | null;
 
   @ManyToOne(() => SpaceEntity, { onDelete: 'CASCADE', nullable: true })
+  @JoinColumn({ name: 'parent_id' })
   parent: SpaceEntity | null;
 
   @Column({ type: 'integer' })

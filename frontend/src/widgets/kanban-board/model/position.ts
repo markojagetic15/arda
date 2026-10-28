@@ -6,7 +6,7 @@ export function positionForNewItem(items: readonly { position: number }[]): numb
   return Math.max(...items.map((item) => item.position)) + GAP
 }
 
-/** A position strictly between two neighbors — either bound may be absent (start/end of list). */
+/** A position strictly between two neighbors - either bound may be absent (start/end of list). */
 export function positionBetween(before: number | undefined, after: number | undefined): number {
   if (before === undefined && after === undefined) return GAP
   if (before === undefined) return after! / 2

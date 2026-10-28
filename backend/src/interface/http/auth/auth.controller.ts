@@ -17,6 +17,7 @@ import { RefreshSessionUseCase } from '../../../application/auth/use-cases/refre
 import { RegisterUserUseCase } from '../../../application/auth/use-cases/register-user.use-case.js';
 import { RequestPasswordResetUseCase } from '../../../application/auth/use-cases/request-password-reset.use-case.js';
 import { ResetPasswordUseCase } from '../../../application/auth/use-cases/reset-password.use-case.js';
+import { VerifyEmailUseCase } from '../../../application/user/use-cases/verify-email.use-case.js';
 import {
   REFRESH_TOKEN_COOKIE,
   REFRESH_TOKEN_COOKIE_PATH,
@@ -25,6 +26,7 @@ import { LoginDto } from './dto/login.dto.js';
 import { RegisterDto } from './dto/register.dto.js';
 import { RequestPasswordResetDto } from './dto/request-password-reset.dto.js';
 import { ResetPasswordDto } from './dto/reset-password.dto.js';
+import { VerifyEmailDto } from './dto/verify-email.dto.js';
 import { toUserResponse } from './user-response.js';
 
 @Controller('auth')
@@ -36,6 +38,7 @@ export class AuthController {
     private readonly logoutUseCase: LogoutUseCase,
     private readonly requestPasswordResetUseCase: RequestPasswordResetUseCase,
     private readonly resetPasswordUseCase: ResetPasswordUseCase,
+    private readonly verifyEmailUseCase: VerifyEmailUseCase,
     private readonly configService: ConfigService,
   ) {}
 
@@ -144,6 +147,13 @@ export class AuthController {
       newPassword: dto.newPassword,
     });
     return { success: true };
+  }
+
+  @Post('verify-email')
+  @HttpCode(HttpStatus.OK)
+  async verifyEmail(@Body() dto: VerifyEmailDto) {
+    const user = await this.verifyEmailUseCase.execute({ token: dto.token });
+    return toUserResponse(user);
   }
 
   private readRefreshCookie(req: Request): string | undefined {

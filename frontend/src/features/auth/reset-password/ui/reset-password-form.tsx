@@ -1,10 +1,12 @@
-import { Alert, Button, Form, Spinner } from '@heroui/react'
+import { Button, Form, Spinner } from '@heroui/react'
 import { useMutation } from '@tanstack/react-query'
 
 import { authApi } from '@/entities/session'
-import { HttpError } from '@/shared/api/http-client'
 import { useAppForm } from '@/shared/lib/form/use-app-form'
+import { errorMessage } from '@/shared/api/error-message'
+import { FormAlert } from '@/shared/ui/form-alert'
 import { FormField } from '@/shared/ui/form-field'
+import { PasswordStrengthMeter } from '@/shared/ui/password-strength-meter'
 
 import { resetPasswordSchema, type ResetPasswordFormValues } from '../model/reset-password.schema'
 
@@ -17,34 +19,23 @@ export function ResetPasswordForm({ token, onSuccess }: { token: string; onSucce
   }
 
   return (
-    <Form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4">
-      {resetPassword.isError ? (
-        <Alert status="danger">
-          <Alert.Description>
-            {resetPassword.error instanceof HttpError
-              ? resetPassword.error.message
-              : 'Something went wrong.'}
-          </Alert.Description>
-        </Alert>
-      ) : null}
+    <Form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-5">
+      {resetPassword.isError ? <FormAlert>{errorMessage(resetPassword.error)}</FormAlert> : null}
 
       <FormField
         control={control}
         name="newPassword"
         label="New password"
         type="password"
+        placeholder="At least 8 characters"
         autoComplete="new-password"
-      />
-      <FormField
-        control={control}
-        name="confirmPassword"
-        label="Confirm new password"
-        type="password"
-        autoComplete="new-password"
-      />
+        autoFocus
+      >
+        {(value) => <PasswordStrengthMeter password={value} />}
+      </FormField>
 
-      <Button type="submit" isDisabled={resetPassword.isPending} fullWidth>
-        {resetPassword.isPending ? <Spinner size="sm" /> : 'Reset password'}
+      <Button type="submit" isDisabled={resetPassword.isPending} fullWidth size="lg" className="h-11 font-semibold">
+        {resetPassword.isPending ? <Spinner size="sm" color="current" /> : 'Save new password'}
       </Button>
     </Form>
   )

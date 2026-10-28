@@ -3,7 +3,7 @@ import { useEffect, useState, type PropsWithChildren } from 'react'
 import { ThemeContext, type ResolvedTheme, type ThemePreference } from './theme-context'
 
 // Must match the inline anti-flash script in index.html.
-const STORAGE_KEY = 'arda-theme-preference'
+const STORAGE_KEY = 'proarda-theme-preference'
 const DARK_MEDIA_QUERY = '(prefers-color-scheme: dark)'
 
 function readStoredPreference(): ThemePreference {
@@ -30,7 +30,7 @@ export function ThemeProvider({ children }: PropsWithChildren) {
     return resolved
   })
 
-  // Only "system" needs an ongoing subscription — the OS theme can change
+  // Only "system" needs an ongoing subscription - the OS theme can change
   // without any action here. Explicit light/dark choices are applied
   // directly in `setPreference` below, no effect involved.
   useEffect(() => {

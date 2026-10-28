@@ -1,7 +1,11 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 
+import { InMemoryMembershipRepository } from '../../../../test/fakes/in-memory-membership.repository.js';
+import { InMemoryPageRepository } from '../../../../test/fakes/in-memory-page.repository.js';
+import { InMemoryProjectRepository } from '../../../../test/fakes/in-memory-project.repository.js';
 import { InMemorySpaceRepository } from '../../../../test/fakes/in-memory-space.repository.js';
 import { POSITION_GAP } from '../../../domain/hierarchy/position.js';
+import { AccessService } from '../../access/access.service.js';
 import { CreateSpaceUseCase } from './create-space.use-case.js';
 import { MoveSpaceUseCase } from './move-space.use-case.js';
 
@@ -14,7 +18,14 @@ describe('Space use cases', () => {
   beforeEach(() => {
     spaceRepository = new InMemorySpaceRepository();
     createSpace = new CreateSpaceUseCase(spaceRepository);
-    moveSpace = new MoveSpaceUseCase(spaceRepository);
+    const projectRepository = new InMemoryProjectRepository(spaceRepository);
+    const access = new AccessService(
+      spaceRepository,
+      projectRepository,
+      new InMemoryPageRepository(projectRepository),
+      new InMemoryMembershipRepository(),
+    );
+    moveSpace = new MoveSpaceUseCase(spaceRepository, access);
   });
 
   it('appends new spaces with an evenly gapped position', async () => {
@@ -41,8 +52,7 @@ describe('Space use cases', () => {
     await createSpace.execute({ ownerId, name: 'A' });
     await createSpace.execute({ ownerId, name: 'B' });
 
-    // Each new space is appended at the end, then squeezed in right after A —
-    // bisecting the same shrinking gap (between A and the current runner-up)
+    // Each new space is appended at the end, then squeezed in right after A - // bisecting the same shrinking gap (between A and the current runner-up)
     // over and over until it's exhausted and a rebalance must kick in.
     for (let i = 0; i < 20; i++) {
       const space = await createSpace.execute({ ownerId, name: `X${i}` });

@@ -7,10 +7,11 @@ import { Page } from '../../../domain/hierarchy/page.model.js';
 import { PageRepository } from '../../../domain/hierarchy/page.repository.js';
 import { PageType } from '../../../domain/hierarchy/page-type.js';
 import { ProjectRepository } from '../../../domain/hierarchy/project.repository.js';
+import { AccessService } from '../../access/access.service.js';
 import { planPosition } from '../position-planner.js';
 
 /**
- * `parentId` is deliberately ambiguous — it names either the project the new
+ * `parentId` is deliberately ambiguous - it names either the project the new
  * page should root under, or an existing page it should nest under.
  */
 @Injectable()
@@ -18,6 +19,7 @@ export class CreatePageUseCase {
   constructor(
     private readonly projectRepository: ProjectRepository,
     private readonly pageRepository: PageRepository,
+    private readonly access: AccessService,
   ) {}
 
   async execute(input: {
@@ -26,9 +28,10 @@ export class CreatePageUseCase {
     title?: string;
     type?: PageType;
   }): Promise<Page> {
-    const targetProject = await this.projectRepository.findByIdForOwner(
-      input.parentId,
+    const targetProject = await this.access.projectFor(
       input.ownerId,
+      input.parentId,
+      'edit',
     );
 
     let projectId: string;
@@ -38,9 +41,10 @@ export class CreatePageUseCase {
       projectId = targetProject.id;
       parentPageId = null;
     } else {
-      const parentPage = await this.pageRepository.findByIdForOwner(
-        input.parentId,
+      const parentPage = await this.access.pageFor(
         input.ownerId,
+        input.parentId,
+        'edit',
       );
       if (!parentPage) {
         throw new PageNotFoundError();

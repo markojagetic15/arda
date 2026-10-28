@@ -2,7 +2,7 @@ export const POSITION_GAP = 65536;
 
 /**
  * Computes a position strictly between two siblings' positions. Returns null
- * when there is no integer room left — the caller must rebalance the whole
+ * when there is no integer room left - the caller must rebalance the whole
  * sibling list (see `rebalancePositions`) and retry.
  */
 export function computePosition(

@@ -35,6 +35,24 @@ export class UserEntity {
   })
   passwordResetTokenExpiresAt: Date | null;
 
+  @Column({ name: 'email_verified_at', type: 'timestamptz', nullable: true })
+  emailVerifiedAt: Date | null;
+
+  @Column({
+    name: 'email_verification_token_hash',
+    type: 'varchar',
+    length: 64,
+    nullable: true,
+  })
+  emailVerificationTokenHash: string | null;
+
+  @Column({
+    name: 'email_verification_expires_at',
+    type: 'timestamptz',
+    nullable: true,
+  })
+  emailVerificationExpiresAt: Date | null;
+
   @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
   createdAt: Date;
 

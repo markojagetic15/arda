@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { IsNull, Repository } from 'typeorm';
+import { In, IsNull, Repository } from 'typeorm';
 
 import { Space, type SpaceProps } from '../../domain/hierarchy/space.model.js';
 import { SpaceRepository } from '../../domain/hierarchy/space.repository.js';
@@ -18,6 +18,17 @@ export class TypeOrmSpaceRepository extends SpaceRepository {
   async findByIdForOwner(id: string, ownerId: string): Promise<Space | null> {
     const entity = await this.repository.findOneBy({ id, ownerId });
     return entity ? this.toDomain(entity) : null;
+  }
+
+  async findById(id: string): Promise<Space | null> {
+    const entity = await this.repository.findOneBy({ id });
+    return entity ? this.toDomain(entity) : null;
+  }
+
+  async findByIds(ids: string[]): Promise<Space[]> {
+    if (ids.length === 0) return [];
+    const entities = await this.repository.find({ where: { id: In(ids) } });
+    return entities.map((entity) => this.toDomain(entity));
   }
 
   async findRootSiblings(ownerId: string): Promise<Space[]> {

@@ -15,6 +15,19 @@ export class InMemoryUserRepository extends UserRepository {
     return null;
   }
 
+  async findByIds(ids: string[]): Promise<User[]> {
+    return ids
+      .map((id) => this.users.get(id))
+      .filter((user): user is User => !!user);
+  }
+
+  async findByEmailVerificationTokenHash(hash: string): Promise<User | null> {
+    for (const user of this.users.values()) {
+      if (user.toProps().emailVerificationTokenHash === hash) return user;
+    }
+    return null;
+  }
+
   async findByPasswordResetTokenHash(hash: string): Promise<User | null> {
     for (const user of this.users.values()) {
       if (user.toProps().passwordResetTokenHash === hash) return user;

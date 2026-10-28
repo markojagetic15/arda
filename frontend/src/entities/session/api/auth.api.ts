@@ -15,6 +15,7 @@ export const authApi = {
   logout: () => httpClient.post<{ success: boolean }>('/auth/logout'),
   requestPasswordReset: (input: { email: string }) =>
     httpClient.post<{ success: boolean }>('/auth/password-reset/request', input),
+  verifyEmail: (input: { token: string }) => httpClient.post<User>('/auth/verify-email', input),
   resetPassword: (input: { token: string; newPassword: string }) =>
     httpClient.post<{ success: boolean }>('/auth/password-reset/confirm', input),
 }

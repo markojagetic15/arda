@@ -7,6 +7,8 @@ import { ForgotPasswordPage } from '@/pages/forgot-password'
 import { ResetPasswordPage } from '@/pages/reset-password'
 import { ProfilePage } from '@/pages/profile'
 import { WorkspacePage } from '@/pages/workspace'
+import { InvitePage } from '@/pages/invite'
+import { VerifyEmailPage } from '@/pages/verify-email'
 
 import { RequireAuth, RequireGuest } from './guards'
 
@@ -14,6 +16,8 @@ export function AppRouter() {
   return (
     <Routes>
       <Route path="/" element={<HomePage />} />
+      <Route path="/invite/:token" element={<InvitePage />} />
+      <Route path="/verify-email" element={<VerifyEmailPage />} />
       <Route
         path="/login"
         element={

@@ -2,7 +2,10 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
-import { Comment, type CommentProps } from '../../domain/comment/comment.model.js';
+import {
+  Comment,
+  type CommentProps,
+} from '../../domain/comment/comment.model.js';
 import { CommentRepository } from '../../domain/comment/comment.repository.js';
 import { CommentEntity } from './comment.entity.js';
 

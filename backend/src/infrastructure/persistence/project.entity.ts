@@ -3,6 +3,7 @@ import {
   CreateDateColumn,
   Entity,
   Index,
+  JoinColumn,
   ManyToOne,
   PrimaryColumn,
   UpdateDateColumn,
@@ -23,12 +24,14 @@ export class ProjectEntity {
   spaceId: string;
 
   @ManyToOne(() => SpaceEntity, { onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'space_id' })
   space: SpaceEntity;
 
   @Column({ name: 'parent_id', type: 'uuid', nullable: true })
   parentId: string | null;
 
   @ManyToOne(() => ProjectEntity, { onDelete: 'CASCADE', nullable: true })
+  @JoinColumn({ name: 'parent_id' })
   parent: ProjectEntity | null;
 
   @Column({ type: 'integer' })

@@ -20,14 +20,15 @@ async function extractErrorMessage(response: Response): Promise<string> {
     if (Array.isArray(body.message)) return body.message.join(', ')
     if (typeof body.message === 'string') return body.message
   } catch {
-    // not a JSON error body — fall through to the raw text
+    // not a JSON error body - fall through to the raw text
   }
   return text || response.statusText
 }
 
 let refreshPromise: Promise<boolean> | null = null
 
-async function refreshAccessToken(): Promise<boolean> {
+/** Exchanges the httpOnly refresh cookie for a new access token. Concurrent calls share one request. */
+export async function refreshAccessToken(): Promise<boolean> {
   refreshPromise ??= (async () => {
     try {
       const response = await fetch(`${env.apiUrl}/auth/refresh`, {
@@ -61,7 +62,8 @@ async function request<T>(path: string, init?: RequestInit, allowRetry = true): 
   const response = await fetch(`${env.apiUrl}${path}`, {
     ...init,
     headers: {
-      'Content-Type': 'application/json',
+      // FormData sets its own multipart content type (with the boundary).
+      ...(init?.body instanceof FormData ? {} : { 'Content-Type': 'application/json' }),
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
       ...init?.headers,
     },
@@ -69,7 +71,7 @@ async function request<T>(path: string, init?: RequestInit, allowRetry = true): 
   })
 
   // Auth endpoints 401 to report bad credentials/tokens, not an expired
-  // session — only retry the silent refresh for protected resource calls.
+  // session - only retry the silent refresh for protected resource calls.
   if (response.status === 401 && allowRetry && !path.startsWith('/auth/')) {
     const refreshed = await refreshAccessToken()
     if (refreshed) {
@@ -95,4 +97,5 @@ export const httpClient = {
   patch: <T>(path: string, body?: unknown) =>
     request<T>(path, { method: 'PATCH', body: JSON.stringify(body) }),
   delete: <T>(path: string) => request<T>(path, { method: 'DELETE' }),
+  upload: <T>(path: string, form: FormData) => request<T>(path, { method: 'POST', body: form }),
 }

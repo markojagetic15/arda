@@ -3,6 +3,7 @@ import {
   CreateDateColumn,
   Entity,
   Index,
+  JoinColumn,
   ManyToOne,
   PrimaryColumn,
   UpdateDateColumn,
@@ -27,6 +28,7 @@ export class PageEntity {
   projectId: string;
 
   @ManyToOne(() => ProjectEntity, { onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'project_id' })
   project: ProjectEntity;
 
   @Column({ name: 'parent_id', type: 'uuid', nullable: true })
@@ -34,6 +36,7 @@ export class PageEntity {
   parentId: string | null;
 
   @ManyToOne(() => PageEntity, { onDelete: 'CASCADE', nullable: true })
+  @JoinColumn({ name: 'parent_id' })
   parent: PageEntity | null;
 
   @Column({ type: 'integer' })

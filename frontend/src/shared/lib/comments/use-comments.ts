@@ -19,8 +19,9 @@ export interface UseCommentsResult {
 /**
  * Comments ride the same per-page Socket.io connection Yjs sync already
  * uses (see `useCollaboration`): the server sends the full comment list for
- * the page once on join ('comments-state'), then pushes 'comment-created'
- * / 'comment-resolved' events to everyone in the room as they happen.
+ * the page on join and again on 'comments-request' ('comments-state'), then
+ * pushes 'comment-created' / 'comment-resolved' events to everyone in the
+ * room as they happen.
  */
 export function useComments(socket: Socket | null): UseCommentsResult {
   const [comments, setComments] = useState<Comment[]>([])
@@ -37,6 +38,10 @@ export function useComments(socket: Socket | null): UseCommentsResult {
     socket.on('comments-state', handleState)
     socket.on('comment-created', handleCreated)
     socket.on('comment-resolved', handleResolved)
+    // The comments sent with the join reply may have arrived before this
+    // listener existed (the page UI mounts only after the document syncs),
+    // so ask for them again now that it's listening.
+    socket.emit('comments-request')
 
     return () => {
       socket.off('comments-state', handleState)

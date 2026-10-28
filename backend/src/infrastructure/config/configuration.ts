@@ -5,6 +5,8 @@ export interface AppConfig {
   port: number;
   corsOrigin: string;
   frontendUrl: string;
+  /** Where uploaded images are stored on disk. */
+  uploadDir: string;
   database: {
     host: string;
     port: number;
@@ -15,6 +17,14 @@ export interface AppConfig {
   redis: {
     host: string;
     port: number;
+  };
+  mail: {
+    host: string;
+    port: number;
+    user: string;
+    pass: string;
+    from: string;
+    replyTo: string;
   };
   auth: {
     accessTokenSecret: string;
@@ -29,6 +39,7 @@ export default (): AppConfig => ({
   port: parseInt(process.env.PORT ?? '3000', 10),
   corsOrigin: process.env.CORS_ORIGIN ?? 'http://localhost:5173',
   frontendUrl: process.env.FRONTEND_URL ?? 'http://localhost:5173',
+  uploadDir: process.env.UPLOAD_DIR ?? 'uploads',
   database: {
     host: process.env.DB_HOST ?? 'localhost',
     port: parseInt(process.env.DB_PORT ?? '5432', 10),
@@ -39,6 +50,14 @@ export default (): AppConfig => ({
   redis: {
     host: process.env.REDIS_HOST ?? 'localhost',
     port: parseInt(process.env.REDIS_PORT ?? '6379', 10),
+  },
+  mail: {
+    host: process.env.SMTP_HOST ?? '',
+    port: parseInt(process.env.SMTP_PORT ?? '587', 10),
+    user: process.env.SMTP_USER ?? '',
+    pass: process.env.SMTP_PASS ?? '',
+    from: process.env.MAIL_FROM ?? '',
+    replyTo: process.env.MAIL_REPLY_TO ?? '',
   },
   auth: {
     accessTokenSecret:

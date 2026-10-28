@@ -22,7 +22,7 @@ interface RoomState {
   awareness: awarenessProtocol.Awareness;
   /** Socket ids currently in this room, on this instance only. */
   sockets: Set<string>;
-  /** Which awareness clientIDs were introduced by which local socket — used to clean up on disconnect. */
+  /** Which awareness clientIDs were introduced by which local socket - used to clean up on disconnect. */
   socketAwarenessIds: Map<string, Set<number>>;
   persistTimer: NodeJS.Timeout | null;
 }
@@ -31,8 +31,8 @@ interface RoomState {
  * Owns the in-memory Yjs CRDT state for every actively-viewed page (one room
  * per page id). A single process instance only holds rooms it has local
  * socket connections for; updates are relayed to sibling instances over
- * Redis pub/sub so every instance's server-side replica — and therefore
- * whatever it persists — stays correct regardless of which instance a given
+ * Redis pub/sub so every instance's server-side replica - and therefore
+ * whatever it persists - stays correct regardless of which instance a given
  * client happens to be connected to.
  */
 @Injectable()

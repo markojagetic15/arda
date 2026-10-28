@@ -1,9 +1,9 @@
-import { Button, Popover } from '@heroui/react'
+import { Popover } from '@heroui/react'
+import { CheckCircle2, MessageSquare, RotateCcw, Send } from 'lucide-react'
 import { useState } from 'react'
 
+import { UserAvatar } from '@/entities/user'
 import { commentsForAnchor, isThreadResolved, type Comment, type CommentAnchorType } from '@/shared/lib/comments'
-
-import { CommentIcon } from './comment-icon'
 
 interface CommentThreadTriggerProps {
   comments: Comment[]
@@ -12,12 +12,20 @@ interface CommentThreadTriggerProps {
   onCreateComment: (body: string) => void
   onResolveToggle: (commentId: string, resolved: boolean) => void
   className?: string
-  /** Opens the thread immediately on mount — used right after starting a brand-new comment. */
+  /** Opens the thread immediately on mount - used right after starting a brand-new comment. */
   autoOpen?: boolean
+  /** False for viewers: the thread is shown read-only. */
+  canComment?: boolean
 }
 
-function formatTime(iso: string): string {
-  return new Date(iso).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+function timeAgo(iso: string): string {
+  const seconds = Math.round((Date.now() - new Date(iso).getTime()) / 1000)
+  if (seconds < 60) return 'just now'
+  const minutes = Math.round(seconds / 60)
+  if (minutes < 60) return `${minutes}m ago`
+  const hours = Math.round(minutes / 60)
+  if (hours < 24) return `${hours}h ago`
+  return new Date(iso).toLocaleDateString([], { month: 'short', day: 'numeric' })
 }
 
 export function CommentThreadTrigger({
@@ -26,8 +34,9 @@ export function CommentThreadTrigger({
   anchorId,
   onCreateComment,
   onResolveToggle,
-  className,
+  className = '',
   autoOpen,
+  canComment = true,
 }: CommentThreadTriggerProps) {
   const thread = commentsForAnchor(comments, anchorType, anchorId)
   const resolved = isThreadResolved(thread)
@@ -43,72 +52,89 @@ export function CommentThreadTrigger({
 
   return (
     <Popover isOpen={isOpen} onOpenChange={setIsOpen}>
-      <Button
-        variant={thread.length > 0 ? 'primary' : 'ghost'}
-        size="sm"
-        isIconOnly
+      <Popover.Trigger
         aria-label={thread.length > 0 ? `${thread.length} comment${thread.length === 1 ? '' : 's'}` : 'Add comment'}
-        className={className}
+        className={`inline-flex h-6 items-center gap-1 rounded-full px-1.5 text-[11px] font-semibold shadow-sm transition ${
+          thread.length === 0
+            ? 'border border-border bg-surface text-muted hover:text-foreground'
+            : resolved
+              ? 'border border-border bg-surface text-muted'
+              : 'bg-accent text-accent-foreground'
+        } ${className}`}
       >
-        <span className="relative flex items-center justify-center">
-          <CommentIcon className={`h-3.5 w-3.5 ${resolved && thread.length > 0 ? 'opacity-50' : ''}`} />
-          {thread.length > 0 ? (
-            <span className="absolute -top-2 -right-2 flex h-3.5 min-w-3.5 items-center justify-center rounded-full bg-blue-500 px-0.5 text-[9px] leading-none text-white">
-              {thread.length}
-            </span>
-          ) : null}
-        </span>
-      </Button>
-      <Popover.Content>
-        <Popover.Dialog className="flex w-72 flex-col gap-2 p-3">
+        <MessageSquare className="h-3 w-3" />
+        {thread.length > 0 ? thread.length : null}
+      </Popover.Trigger>
+      <Popover.Content className="w-80">
+        <Popover.Dialog className="flex flex-col gap-3 p-3">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-medium tracking-wide uppercase opacity-60">Comments</span>
-            {thread.length > 0 ? (
+            <span className="text-sm font-semibold">
+              Comments {resolved && thread.length > 0 ? <span className="font-normal text-muted">(resolved)</span> : null}
+            </span>
+            {thread.length > 0 && canComment ? (
               <button
                 type="button"
                 onClick={() => onResolveToggle(thread[0].id, !resolved)}
-                className="text-xs underline opacity-70 hover:opacity-100"
+                className="inline-flex items-center gap-1 rounded-md px-1.5 py-1 text-xs font-medium text-muted hover:bg-default hover:text-foreground"
               >
+                {resolved ? <RotateCcw className="h-3.5 w-3.5" /> : <CheckCircle2 className="h-3.5 w-3.5" />}
                 {resolved ? 'Reopen' : 'Resolve'}
               </button>
             ) : null}
           </div>
 
-          <div className="flex max-h-64 flex-col gap-2 overflow-y-auto">
+          <div className="scroll-thin flex max-h-72 flex-col gap-3 overflow-y-auto">
             {thread.length === 0 ? (
-              <p className="text-xs opacity-60">No comments yet — start the conversation.</p>
+              <p className="text-xs text-muted">No comments yet. Start the conversation.</p>
             ) : (
               thread.map((comment) => (
-                <div key={comment.id} className="text-xs">
-                  <span className="font-medium">{comment.authorName}</span>{' '}
-                  <span className="opacity-50">{formatTime(comment.createdAt)}</span>
-                  <p className="mt-0.5">{comment.body}</p>
+                <div key={comment.id} className="flex gap-2.5">
+                  <UserAvatar name={comment.authorName} id={comment.authorId} size="xs" className="mt-0.5" />
+                  <div className="min-w-0 flex-1">
+                    <p className="text-xs">
+                      <span className="font-semibold">{comment.authorName}</span>{' '}
+                      <span className="text-muted">{timeAgo(comment.createdAt)}</span>
+                    </p>
+                    <p className="mt-0.5 text-sm break-words whitespace-pre-wrap">{comment.body}</p>
+                  </div>
                 </div>
               ))
             )}
           </div>
 
+          {canComment ? (
           <form
             onSubmit={(event) => {
               event.preventDefault()
               submit()
             }}
-            className="flex gap-1"
+            className="flex items-end gap-1.5 rounded-xl border border-border bg-field p-1.5 focus-within:border-accent"
           >
-            <input
+            <textarea
               value={draft}
+              autoFocus
+              rows={2}
               onChange={(event) => setDraft(event.target.value)}
-              placeholder="Write a comment…"
+              onKeyDown={(event) => {
+                if (event.key === 'Enter' && !event.shiftKey) {
+                  event.preventDefault()
+                  submit()
+                }
+              }}
+              placeholder={thread.length ? 'Reply...' : 'Write a comment...'}
               aria-label="Write a comment"
-              className="min-w-0 flex-1 rounded border border-current/20 bg-transparent px-2 py-1 text-xs outline-none focus:border-current/40"
+              className="min-w-0 flex-1 resize-none bg-transparent px-1.5 py-1 text-sm outline-none"
             />
             <button
               type="submit"
-              className="rounded border border-current/20 px-2 py-1 text-xs hover:bg-current/5"
+              disabled={!draft.trim()}
+              aria-label="Send"
+              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-accent text-accent-foreground disabled:opacity-40"
             >
-              Send
+              <Send className="h-3.5 w-3.5" />
             </button>
           </form>
+          ) : null}
         </Popover.Dialog>
       </Popover.Content>
     </Popover>

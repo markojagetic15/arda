@@ -7,6 +7,7 @@ import {
 import { Project } from '../../../domain/hierarchy/project.model.js';
 import { ProjectRepository } from '../../../domain/hierarchy/project.repository.js';
 import { SpaceRepository } from '../../../domain/hierarchy/space.repository.js';
+import { AccessService } from '../../access/access.service.js';
 import { planPosition } from '../position-planner.js';
 
 /** Moves a project to a (possibly different) space and/or reorders it among that space's projects. */
@@ -15,6 +16,7 @@ export class MoveProjectUseCase {
   constructor(
     private readonly spaceRepository: SpaceRepository,
     private readonly projectRepository: ProjectRepository,
+    private readonly access: AccessService,
   ) {}
 
   async execute(input: {
@@ -23,17 +25,19 @@ export class MoveProjectUseCase {
     targetSpaceId: string;
     index: number;
   }): Promise<Project> {
-    const project = await this.projectRepository.findByIdForOwner(
-      input.projectId,
+    const project = await this.access.projectFor(
       input.ownerId,
+      input.projectId,
+      'edit',
     );
     if (!project) {
       throw new ProjectNotFoundError();
     }
 
-    const targetSpace = await this.spaceRepository.findByIdForOwner(
-      input.targetSpaceId,
+    const targetSpace = await this.access.spaceFor(
       input.ownerId,
+      input.targetSpaceId,
+      'edit',
     );
     if (!targetSpace) {
       throw new SpaceNotFoundError();

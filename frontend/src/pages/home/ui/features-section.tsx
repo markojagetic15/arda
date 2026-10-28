@@ -1,71 +1,91 @@
-import { Card } from '@heroui/react'
-
 import {
-  CanvasIcon,
-  CommentIcon,
-  DocIcon,
-  KanbanIcon,
-  PresenceIcon,
-  TreeIcon,
-} from './feature-icons'
+  FileText,
+  FolderTree,
+  KanbanSquare,
+  MessageSquare,
+  MousePointer2,
+  PenTool,
+  type LucideIcon,
+} from 'lucide-react'
 
-const FEATURES = [
+interface Feature {
+  icon: LucideIcon
+  title: string
+  text: string
+  tint: string
+  wide?: boolean
+  full?: boolean
+}
+
+const FEATURES: Feature[] = [
   {
-    icon: DocIcon,
-    title: 'Collaborative docs',
-    description: 'A rich text editor where every cursor, highlight, and edit lands instantly for everyone viewing the page.',
+    icon: FileText,
+    title: 'Documents you can style down to the letter',
+    text: 'Fonts, sizes, colors, highlights, letter spacing, tables, task lists, slash commands and more. Make every page look exactly how you want.',
+    tint: 'from-sky-500/15 text-sky-600 dark:text-sky-400',
+    wide: true,
   },
   {
-    icon: CanvasIcon,
+    icon: PenTool,
     title: 'Infinite canvas',
-    description: 'Sketch shapes, sticky notes, and connectors on a shared whiteboard that stays in sync shape-by-shape.',
+    text: 'Sketch, diagram and brainstorm with shapes, arrows, text, images and freehand drawing.',
+    tint: 'from-fuchsia-500/15 text-fuchsia-600 dark:text-fuchsia-400',
   },
   {
-    icon: KanbanIcon,
-    title: 'Kanban boards',
-    description: 'Default To Do / Doing / Done columns, custom columns per project, and drag-and-drop cards that move live.',
+    icon: KanbanSquare,
+    title: 'Task boards',
+    text: 'Custom columns, colored labels, due dates and drag-and-drop cards that move live.',
+    tint: 'from-amber-500/15 text-amber-600 dark:text-amber-400',
   },
   {
-    icon: CommentIcon,
-    title: 'Threaded comments',
-    description: 'Leave a comment on a text selection, a canvas shape, or a task card — threads update live for the whole team.',
+    icon: MessageSquare,
+    title: 'Comments everywhere',
+    text: 'Start a thread on any text, shape or card. Resolve it when the work is done.',
+    tint: 'from-emerald-500/15 text-emerald-600 dark:text-emerald-400',
   },
   {
-    icon: PresenceIcon,
+    icon: MousePointer2,
     title: 'Live presence',
-    description: 'See who else is here, their live cursors, and their selections — no refresh, no merge conflicts.',
+    text: 'See who is here, where their cursor is and what they are editing - instantly.',
+    tint: 'from-violet-500/15 text-violet-600 dark:text-violet-400',
   },
   {
-    icon: TreeIcon,
-    title: 'Nested workspaces',
-    description: 'Spaces, projects, and unlimited nested pages, organized in a drag-and-drop sidebar tree.',
+    icon: FolderTree,
+    title: 'Organized your way',
+    text: 'Spaces, projects and unlimited nested pages in a drag-and-drop sidebar, plus quick search.',
+    tint: 'from-rose-500/15 text-rose-600 dark:text-rose-400',
+    full: true,
   },
 ]
 
 export function FeaturesSection() {
   return (
-    <section id="features" className="mx-auto max-w-6xl px-4 py-16 sm:px-6 sm:py-20">
+    <section id="features" className="mx-auto max-w-6xl scroll-mt-20 px-4 py-20 sm:px-6 sm:py-28">
       <div className="mx-auto max-w-2xl text-center">
-        <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">Everything your team needs, one workspace</h2>
-        <p className="mt-3 text-base opacity-70">
-          Stop switching between five different tools. Arda brings documents, whiteboards, and task boards together —
-          all live, all in one place.
+        <p className="text-sm font-semibold text-accent">Everything in one place</p>
+        <h2 className="font-display mt-2 text-4xl font-bold sm:text-5xl">Three tools. One calm workspace.</h2>
+        <p className="mt-4 text-lg text-muted">
+          Stop jumping between apps. Write the plan, sketch the idea and track the work side by side.
         </p>
       </div>
 
-      <div className="mt-12 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
-        {FEATURES.map(({ icon: Icon, title, description }) => (
-          <Card key={title} className="h-full">
-            <Card.Header>
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-current/5">
+      <div className="mt-14 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        {FEATURES.map(({ icon: Icon, title, text, tint, wide, full }) => (
+          <article
+            key={title}
+            className={`group relative overflow-hidden rounded-3xl border border-border bg-surface p-7 transition-all hover:-translate-y-0.5 hover:shadow-lg ${
+              wide ? 'lg:col-span-2' : full ? 'sm:col-span-2 lg:col-span-3' : ''
+            }`}
+          >
+            <div className={`pointer-events-none absolute inset-0 bg-gradient-to-br ${tint} to-transparent to-60% opacity-60`} />
+            <div className="relative">
+              <span className={`flex h-11 w-11 items-center justify-center rounded-2xl bg-surface shadow-sm ring-1 ring-border ${tint.split(' ').slice(1).join(' ')}`}>
                 <Icon className="h-5 w-5" />
-              </div>
-            </Card.Header>
-            <Card.Content>
-              <Card.Title>{title}</Card.Title>
-              <Card.Description className="mt-1.5">{description}</Card.Description>
-            </Card.Content>
-          </Card>
+              </span>
+              <h3 className="font-display mt-5 text-lg font-bold">{title}</h3>
+              <p className="mt-2 max-w-lg text-sm leading-relaxed text-muted">{text}</p>
+            </div>
+          </article>
         ))}
       </div>
     </section>

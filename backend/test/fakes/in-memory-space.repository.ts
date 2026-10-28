@@ -9,6 +9,14 @@ export class InMemorySpaceRepository extends SpaceRepository {
     return space && space.ownerId === ownerId ? space : null;
   }
 
+  async findById(id: string): Promise<Space | null> {
+    return this.spaces.get(id) ?? null;
+  }
+
+  async findByIds(ids: string[]): Promise<Space[]> {
+    return ids.map((id) => this.spaces.get(id)).filter((s): s is Space => !!s);
+  }
+
   async findRootSiblings(ownerId: string): Promise<Space[]> {
     return [...this.spaces.values()]
       .filter((space) => space.ownerId === ownerId && space.parentId === null)

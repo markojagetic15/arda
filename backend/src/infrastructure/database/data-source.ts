@@ -6,10 +6,7 @@ import configuration from '../config/configuration.js';
 import { buildTypeOrmOptions } from './typeorm-options.js';
 
 /**
- * Used by the TypeORM CLI (`npm run migration:*`) — not injected into Nest's DI.
+ * Used by the TypeORM CLI (`npm run migration:*`) - not injected into Nest's DI.
+ * The CLI requires exactly one DataSource export, so this is the only one.
  */
-export const dataSource = new DataSource(
-  buildTypeOrmOptions(configuration().database),
-);
-
-export default dataSource;
+export default new DataSource(buildTypeOrmOptions(configuration().database));

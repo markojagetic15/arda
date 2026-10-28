@@ -1,11 +1,14 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 
+import { InMemoryDocumentSnapshotRepository } from '../../../../test/fakes/in-memory-document-snapshot.repository.js';
+import { InMemoryMembershipRepository } from '../../../../test/fakes/in-memory-membership.repository.js';
 import { InMemoryPageRepository } from '../../../../test/fakes/in-memory-page.repository.js';
 import { InMemoryProjectRepository } from '../../../../test/fakes/in-memory-project.repository.js';
 import { InMemorySpaceRepository } from '../../../../test/fakes/in-memory-space.repository.js';
 import { InvalidMoveError } from '../../../domain/hierarchy/hierarchy.errors.js';
 import { Project } from '../../../domain/hierarchy/project.model.js';
 import { Space } from '../../../domain/hierarchy/space.model.js';
+import { AccessService } from '../../access/access.service.js';
 import { CreatePageUseCase } from './create-page.use-case.js';
 import { DuplicatePageUseCase } from './duplicate-page.use-case.js';
 import { MovePageUseCase } from './move-page.use-case.js';
@@ -17,6 +20,7 @@ describe('Page use cases', () => {
   let createPage: CreatePageUseCase;
   let movePage: MovePageUseCase;
   let duplicatePage: DuplicatePageUseCase;
+  let snapshots: InMemoryDocumentSnapshotRepository;
   const ownerId = 'owner-1';
   let projectA: Project;
   let projectB: Project;
@@ -25,9 +29,20 @@ describe('Page use cases', () => {
     spaceRepository = new InMemorySpaceRepository();
     projectRepository = new InMemoryProjectRepository(spaceRepository);
     pageRepository = new InMemoryPageRepository(projectRepository);
-    createPage = new CreatePageUseCase(projectRepository, pageRepository);
-    movePage = new MovePageUseCase(projectRepository, pageRepository);
-    duplicatePage = new DuplicatePageUseCase(pageRepository);
+    const access = new AccessService(
+      spaceRepository,
+      projectRepository,
+      pageRepository,
+      new InMemoryMembershipRepository(),
+    );
+    createPage = new CreatePageUseCase(
+      projectRepository,
+      pageRepository,
+      access,
+    );
+    movePage = new MovePageUseCase(projectRepository, pageRepository, access);
+    snapshots = new InMemoryDocumentSnapshotRepository();
+    duplicatePage = new DuplicatePageUseCase(pageRepository, snapshots, access);
 
     const space = Space.create({
       id: 'space-1',
@@ -104,7 +119,7 @@ describe('Page use cases', () => {
     const movedGrandchild = await pageRepository.findById(grandchild.id);
     expect(movedChild?.projectId).toBe(projectB.id);
     expect(movedGrandchild?.projectId).toBe(projectB.id);
-    // the nested structure itself is untouched — only the project scoping changed
+    // the nested structure itself is untouched - only the project scoping changed
     expect(movedChild?.parentId).toBe(root.id);
     expect(movedGrandchild?.parentId).toBe(child.id);
   });
@@ -172,5 +187,31 @@ describe('Page use cases', () => {
       originals.some((page) => page.id === root.id && page.title === 'Root'),
     ).toBe(true);
     expect(originals).toHaveLength(4); // 2 originals (Root, Child) + 2 clones
+  });
+
+  it("copies each page's saved content onto its duplicate", async () => {
+    const root = await createPage.execute({
+      ownerId,
+      parentId: projectA.id,
+      title: 'Root',
+    });
+    const child = await createPage.execute({
+      ownerId,
+      parentId: root.id,
+      title: 'Child',
+    });
+    await snapshots.save(root.id, new Uint8Array([1, 2, 3]));
+    await snapshots.save(child.id, new Uint8Array([4, 5]));
+
+    const clones = await duplicatePage.execute({ ownerId, pageId: root.id });
+
+    const clonedRoot = clones.find((page) => page.parentId === null)!;
+    const clonedChild = clones.find((page) => page.parentId !== null)!;
+    expect(await snapshots.findByPageId(clonedRoot.id)).toEqual(
+      new Uint8Array([1, 2, 3]),
+    );
+    expect(await snapshots.findByPageId(clonedChild.id)).toEqual(
+      new Uint8Array([4, 5]),
+    );
   });
 });

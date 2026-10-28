@@ -40,7 +40,11 @@ describe('ResolveCommentUseCase', () => {
   });
 
   it('can reopen an already-resolved comment', async () => {
-    await useCase.execute({ pageId: 'page-1', commentId: 'comment-1', resolved: true });
+    await useCase.execute({
+      pageId: 'page-1',
+      commentId: 'comment-1',
+      resolved: true,
+    });
     const reopened = await useCase.execute({
       pageId: 'page-1',
       commentId: 'comment-1',
@@ -52,13 +56,21 @@ describe('ResolveCommentUseCase', () => {
 
   it('throws when the comment belongs to a different page', async () => {
     await expect(
-      useCase.execute({ pageId: 'other-page', commentId: 'comment-1', resolved: true }),
+      useCase.execute({
+        pageId: 'other-page',
+        commentId: 'comment-1',
+        resolved: true,
+      }),
     ).rejects.toThrow(CommentNotFoundError);
   });
 
   it('throws when the comment does not exist', async () => {
     await expect(
-      useCase.execute({ pageId: 'page-1', commentId: 'missing', resolved: true }),
+      useCase.execute({
+        pageId: 'page-1',
+        commentId: 'missing',
+        resolved: true,
+      }),
     ).rejects.toThrow(CommentNotFoundError);
   });
 });

@@ -33,7 +33,7 @@ export class FakeRedisClient {
     this.quitCalled = true;
   }
 
-  /** Test helper — simulates a message published by another instance. */
+  /** Test helper - simulates a message published by another instance. */
   emitRemoteMessage(channel: string, message: Buffer): void {
     for (const handler of this.handlers.get('pmessageBuffer') ?? []) {
       handler('pattern', Buffer.from(channel), message);

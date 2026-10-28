@@ -3,19 +3,19 @@ import type { User } from '@/entities/user'
 
 /**
  * A tiny in-memory stand-in for the real backend, used when
- * `VITE_MOCK_AUTH=true` (see `http-client.ts`). Lets the app be explored —
- * spaces, projects, the default document/canvas/kanban pages, drag-and-drop
- * reordering — with no Postgres/Redis/NestJS running at all.
+ * `VITE_MOCK_AUTH=true` (see `http-client.ts`). Lets the app be explored - * spaces, projects, the default document/canvas/kanban pages, drag-and-drop
+ * reordering - with no Postgres/Redis/NestJS running at all.
  *
  * Real-time collaboration itself still needs the real WebSocket gateway, so
- * pages will show "Disconnected" and won't sync across tabs — everything
+ * pages will show "Disconnected" and won't sync across tabs - everything
  * else (editing, drawing, dragging cards) still works fully locally.
  */
 
 const MOCK_USER: User = {
   id: 'mock-user',
-  email: 'demo@arda.local',
+  email: 'demo@proarda.local',
   name: 'Demo User',
+  emailVerified: true,
   createdAt: new Date(0).toISOString(),
 }
 

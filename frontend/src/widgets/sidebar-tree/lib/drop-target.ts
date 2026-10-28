@@ -1,4 +1,4 @@
-import { getSiblings, type HierarchyNode } from '@/entities/hierarchy-node'
+import { collectSubtreeIds, getSiblings, hasRole, type HierarchyNode } from '@/entities/hierarchy-node'
 import type { MoveNodeInput } from '@/features/hierarchy-tree'
 
 import type { FlatNode } from './flatten-tree'
@@ -10,21 +10,26 @@ export interface DropIndicator {
   position: DropPosition
 }
 
-/** Classifies where within a hovered row's rect the dragged item's center currently sits. */
-export function classifyDropPosition(overRect: { top: number; height: number }, referenceCenterY: number): DropPosition {
-  const ratio = (referenceCenterY - overRect.top) / overRect.height
-  if (ratio < 0.3) return 'before'
-  if (ratio > 0.7) return 'after'
+/** Where within the hovered row the pointer is: top quarter, bottom quarter, or the middle. */
+export function classifyDropPosition(overRect: { top: number; height: number }, pointerY: number): DropPosition {
+  const ratio = (pointerY - overRect.top) / overRect.height
+  if (ratio < 0.28) return 'before'
+  if (ratio > 0.72) return 'after'
   return 'inside'
 }
 
 /**
  * Mirrors the backend's move rules: spaces only reorder among spaces;
- * projects reorder among projects or nest inside a space; pages reorder
- * among pages or nest inside a project/page.
+ * projects reorder among projects or go inside a space; pages reorder among
+ * pages or go inside a project/page. The user needs edit access where the
+ * item lands, and a node can't move into its own subtree.
  */
-export function isValidDrop(active: FlatNode, over: FlatNode, position: DropPosition): boolean {
+export function isValidDrop(nodes: HierarchyNode[], active: FlatNode, over: FlatNode, position: DropPosition): boolean {
   if (active.id === over.id) return false
+  if (collectSubtreeIds(nodes, active.id).has(over.id)) return false
+
+  const parent = position === 'inside' ? over : nodes.find((node) => node.id === over.parentId)
+  if (!hasRole(parent?.role ?? over.role, 'edit')) return false
 
   if (active.kind === 'space') {
     return over.kind === 'space' && position !== 'inside'
@@ -33,7 +38,6 @@ export function isValidDrop(active: FlatNode, over: FlatNode, position: DropPosi
     if (position === 'inside') return over.kind === 'space'
     return over.kind === 'project'
   }
-  // active.kind === 'page'
   if (position === 'inside') return over.kind === 'project' || over.kind === 'page'
   return over.kind === 'page'
 }
@@ -44,7 +48,7 @@ export function computeMove(
   over: FlatNode,
   position: DropPosition,
 ): MoveNodeInput | null {
-  if (!isValidDrop(active, over, position)) {
+  if (!isValidDrop(nodes, active, over, position)) {
     return null
   }
 

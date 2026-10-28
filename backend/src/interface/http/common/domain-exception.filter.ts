@@ -9,14 +9,21 @@ import {
 import type { Response } from 'express';
 
 import {
+  AccessDeniedError,
+  InvalidShareError,
+  InvitationNotFoundError,
+} from '../../../domain/access/access.errors.js';
+import {
   InvalidMoveError,
   PageNotFoundError,
   ProjectNotFoundError,
   SpaceNotFoundError,
 } from '../../../domain/hierarchy/hierarchy.errors.js';
 import { InvalidSessionError } from '../../../domain/session/session.errors.js';
+import { UnsupportedFileError } from '../../../domain/storage/upload.errors.js';
 import {
   EmailAlreadyInUseError,
+  IncorrectPasswordError,
   InvalidCredentialsError,
   InvalidOrExpiredResetTokenError,
   UserNotFoundError,
@@ -57,11 +64,19 @@ export class DomainExceptionFilter implements ExceptionFilter {
       return HttpStatus.UNAUTHORIZED;
     if (exception instanceof InvalidOrExpiredResetTokenError)
       return HttpStatus.BAD_REQUEST;
+    if (exception instanceof IncorrectPasswordError)
+      return HttpStatus.BAD_REQUEST;
     if (exception instanceof UserNotFoundError) return HttpStatus.NOT_FOUND;
     if (exception instanceof SpaceNotFoundError) return HttpStatus.NOT_FOUND;
     if (exception instanceof ProjectNotFoundError) return HttpStatus.NOT_FOUND;
     if (exception instanceof PageNotFoundError) return HttpStatus.NOT_FOUND;
     if (exception instanceof InvalidMoveError) return HttpStatus.BAD_REQUEST;
+    if (exception instanceof AccessDeniedError) return HttpStatus.FORBIDDEN;
+    if (exception instanceof InvitationNotFoundError)
+      return HttpStatus.NOT_FOUND;
+    if (exception instanceof InvalidShareError) return HttpStatus.BAD_REQUEST;
+    if (exception instanceof UnsupportedFileError)
+      return HttpStatus.BAD_REQUEST;
     return null;
   }
 }

@@ -66,11 +66,11 @@ describe('RoomManagerService', () => {
       doc.getText('body').insert(0, 'from-elsewhere'),
     );
 
-    // No local clients for "page-ignored" — the message should be dropped.
+    // No local clients for "page-ignored" - the message should be dropped.
     redis.emitRemoteMessage('yjs-update:page-ignored', Buffer.from(update));
     expect(snapshotRepository.saveCalls).toHaveLength(0);
 
-    // "page-1" is active locally — the update should be merged in.
+    // "page-1" is active locally - the update should be merged in.
     await roomManager.joinRoom('page-1', 'socket-1');
     redis.emitRemoteMessage('yjs-update:page-1', Buffer.from(update));
 
@@ -114,7 +114,7 @@ describe('RoomManagerService', () => {
     expect(afterLeave.getStates().has(clientId)).toBe(false);
   });
 
-  it('debounces persistence — rapid updates only flush once', async () => {
+  it('debounces persistence - rapid updates only flush once', async () => {
     vi.useFakeTimers();
     await roomManager.joinRoom('page-1', 'socket-1');
 

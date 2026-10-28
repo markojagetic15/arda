@@ -1,36 +1,45 @@
-import { buttonVariants } from '@heroui/react'
-import { Link } from 'react-router-dom'
+import { Button } from '@heroui/react'
+import { Link, useNavigate } from 'react-router-dom'
 
+import { Logo } from '@/shared/ui/logo'
 import { ThemeToggle } from '@/shared/ui/theme-toggle'
 
-const NAV_LINKS = [
+const NAV = [
   { href: '#features', label: 'Features' },
   { href: '#how-it-works', label: 'How it works' },
   { href: '#faq', label: 'FAQ' },
 ]
 
 export function SiteHeader() {
-  return (
-    <header className="sticky top-0 z-10 border-b border-current/10 bg-background/80 backdrop-blur-md">
-      <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3 sm:px-6">
-        <span className="text-lg font-semibold tracking-tight">Arda</span>
+  const navigate = useNavigate()
 
-        <nav className="hidden items-center gap-6 text-sm opacity-80 md:flex" aria-label="Sections">
-          {NAV_LINKS.map((link) => (
-            <a key={link.href} href={link.href} className="hover:opacity-100">
-              {link.label}
+  return (
+    <header className="sticky top-0 z-30 border-b border-border/60 bg-background/75 backdrop-blur-xl">
+      <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-4 px-4 sm:px-6">
+        <Link to="/" aria-label="proarda home">
+          <Logo />
+        </Link>
+
+        <nav className="hidden items-center gap-1 md:flex" aria-label="Main">
+          {NAV.map(({ href, label }) => (
+            <a
+              key={href}
+              href={href}
+              className="rounded-full px-3.5 py-1.5 text-sm font-medium text-muted transition-colors hover:bg-default hover:text-foreground"
+            >
+              {label}
             </a>
           ))}
         </nav>
 
-        <div className="flex items-center gap-2 sm:gap-3">
-          <ThemeToggle />
-          <Link to="/login" className="hidden text-sm font-medium sm:inline">
+        <div className="flex items-center gap-2">
+          <ThemeToggle className="hidden sm:inline-flex" />
+          <Link to="/login" className="hidden px-2 text-sm font-medium hover:text-accent sm:block">
             Sign in
           </Link>
-          <Link to="/register" className={buttonVariants({ variant: 'primary', size: 'sm' })}>
+          <Button size="sm" className="font-semibold" onPress={() => navigate('/register')}>
             Get started
-          </Link>
+          </Button>
         </div>
       </div>
     </header>

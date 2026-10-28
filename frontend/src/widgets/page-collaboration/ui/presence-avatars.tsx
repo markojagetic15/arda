@@ -1,27 +1,42 @@
-import { Avatar, AvatarGroup } from '@heroui/react'
+import { UserAvatar } from '@/entities/user'
 
-import type { AwarenessUser } from '@/shared/lib/collaboration'
+import type { PeerPresence } from '../model/use-presence-users'
 
-function initials(name: string): string {
-  const parts = name.trim().split(/\s+/)
-  const letters = parts.length > 1 ? [parts[0][0], parts.at(-1)![0]] : [parts[0]?.[0] ?? '?']
-  return letters.join('').toUpperCase()
+const MAX_SHOWN = 4
+
+interface PresenceAvatarsProps {
+  users: PeerPresence[]
+  /** When set, clicking an avatar jumps to that person's cursor. */
+  onSelect?: (user: PeerPresence) => void
 }
 
-export function PresenceAvatars({ users }: { users: AwarenessUser[] }) {
-  if (users.length === 0) {
-    return <p className="text-sm opacity-60">Only you are here right now.</p>
-  }
+/** Avatar stack of the other people on this page, in their cursor colors. */
+export function PresenceAvatars({ users, onSelect }: PresenceAvatarsProps) {
+  if (users.length === 0) return null
+
+  const shown = users.slice(0, MAX_SHOWN)
+  const extra = users.length - shown.length
 
   return (
-    <AvatarGroup max={6} size="sm">
-      {users.map((user) => (
-        <Avatar key={user.id} title={user.name}>
-          <Avatar.Fallback style={{ backgroundColor: user.color, color: 'white' }}>
-            {initials(user.name)}
-          </Avatar.Fallback>
-        </Avatar>
+    <div className="flex items-center -space-x-1.5" aria-label={`${users.length} other people here`}>
+      {shown.map((user) => (
+        <button
+          key={user.id}
+          type="button"
+          onClick={() => onSelect?.(user)}
+          disabled={!onSelect}
+          title={onSelect ? `${user.name} - click to jump to their cursor` : user.name}
+          className="rounded-full ring-2 ring-background transition-transform hover:z-10 hover:scale-110 disabled:hover:scale-100"
+          style={{ boxShadow: `0 0 0 2px ${user.color}` }}
+        >
+          <UserAvatar name={user.name} color={user.color} />
+        </button>
       ))}
-    </AvatarGroup>
+      {extra > 0 ? (
+        <span className="flex h-7 w-7 items-center justify-center rounded-full bg-default text-[11px] font-semibold ring-2 ring-background">
+          +{extra}
+        </span>
+      ) : null}
+    </div>
   )
 }

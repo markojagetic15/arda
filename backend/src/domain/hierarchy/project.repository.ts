@@ -6,9 +6,11 @@ export abstract class ProjectRepository {
     id: string,
     ownerId: string,
   ): Promise<Project | null>;
+  abstract findById(id: string): Promise<Project | null>;
+  abstract findByIds(ids: string[]): Promise<Project[]>;
   /** All projects directly in a space, ordered by position. */
   abstract findSiblings(spaceId: string): Promise<Project[]>;
-  /** All projects across a set of spaces — used to assemble the full tree. */
+  /** All projects across a set of spaces - used to assemble the full tree. */
   abstract findAllForSpaces(spaceIds: string[]): Promise<Project[]>;
   abstract save(project: Project): Promise<void>;
   abstract saveMany(projects: Project[]): Promise<void>;

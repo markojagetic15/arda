@@ -1,43 +1,249 @@
 .tiptap-editor {
-  min-height: 60vh;
+  min-height: 55vh;
   outline: none;
-  font-size: 1rem;
+  font-size: 16px;
   line-height: 1.7;
+  color: var(--foreground);
+  padding-bottom: 30vh;
+  word-wrap: break-word;
+}
+
+.tiptap-editor > * + * {
+  margin-top: 0.6em;
 }
 
 .tiptap-editor p {
-  margin: 0 0 0.75em;
+  margin: 0;
 }
 
 .tiptap-editor h1,
 .tiptap-editor h2,
-.tiptap-editor h3 {
-  margin: 1.2em 0 0.5em;
-  font-weight: 600;
-  line-height: 1.3;
+.tiptap-editor h3,
+.tiptap-editor h4 {
+  font-family: var(--font-display);
+  font-weight: 700;
+  line-height: 1.25;
+  letter-spacing: -0.012em;
+  margin-top: 1.4em;
 }
 
-.tiptap-editor h1 {
-  font-size: 1.8em;
+.tiptap-editor h1 { font-size: 2em; }
+.tiptap-editor h2 { font-size: 1.5em; }
+.tiptap-editor h3 { font-size: 1.25em; }
+.tiptap-editor h4 { font-size: 1.05em; }
+
+.tiptap-editor :is(h1, h2, h3, h4) + * {
+  margin-top: 0.8em;
 }
 
-.tiptap-editor h2 {
-  font-size: 1.4em;
+.tiptap-editor > :first-child {
+  margin-top: 0;
 }
 
-.tiptap-editor h3 {
-  font-size: 1.15em;
+.tiptap-editor a {
+  color: var(--accent);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+
+.tiptap-editor strong { font-weight: 700; }
+
+.tiptap-editor mark {
+  border-radius: 3px;
+  padding: 0.05em 0.1em;
+  color: inherit;
+  box-decoration-break: clone;
+}
+
+.tiptap-editor mark:not([style]) {
+  background: #fef08a;
+}
+
+.dark .tiptap-editor mark {
+  color: #111827;
+}
+
+.tiptap-editor code {
+  font-family: "JetBrains Mono Variable", ui-monospace, monospace;
+  font-size: 0.88em;
+  background: var(--surface-secondary);
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  padding: 0.1em 0.35em;
+}
+
+.tiptap-editor pre {
+  font-family: "JetBrains Mono Variable", ui-monospace, monospace;
+  background: oklch(0.2 0.02 275);
+  color: oklch(0.93 0.01 275);
+  border-radius: 12px;
+  padding: 1em 1.2em;
+  font-size: 0.875em;
+  line-height: 1.6;
+  overflow-x: auto;
+}
+
+.tiptap-editor pre code {
+  background: none;
+  border: 0;
+  padding: 0;
+  color: inherit;
+  font-size: inherit;
+}
+
+.tiptap-editor blockquote {
+  border-left: 3px solid var(--accent);
+  padding: 0.15em 0 0.15em 1em;
+  color: color-mix(in oklab, var(--foreground) 80%, transparent);
+  font-style: italic;
+}
+
+.tiptap-editor hr {
+  border: 0;
+  border-top: 1px solid var(--border);
+  margin: 1.6em 0;
+}
+
+.tiptap-editor hr.ProseMirror-selectednode {
+  border-top-color: var(--accent);
 }
 
 .tiptap-editor ul,
 .tiptap-editor ol {
-  padding-left: 1.4em;
-  margin: 0 0 0.75em;
+  padding-left: 1.5em;
+}
+
+.tiptap-editor ul { list-style: disc; }
+.tiptap-editor ol { list-style: decimal; }
+.tiptap-editor ul ul { list-style: circle; }
+.tiptap-editor li > p { margin: 0; }
+.tiptap-editor li + li { margin-top: 0.2em; }
+.tiptap-editor li::marker { color: var(--muted); }
+
+.tiptap-editor ul[data-type="taskList"] {
+  list-style: none;
+  padding-left: 0.2em;
+}
+
+.tiptap-editor ul[data-type="taskList"] li {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6em;
+}
+
+.tiptap-editor ul[data-type="taskList"] li > label {
+  flex-shrink: 0;
+  margin-top: 0.3em;
+  user-select: none;
+}
+
+.tiptap-editor ul[data-type="taskList"] li > div {
+  flex: 1;
+}
+
+.tiptap-editor ul[data-type="taskList"] input[type="checkbox"] {
+  width: 1.05em;
+  height: 1.05em;
+  accent-color: var(--accent);
+  cursor: pointer;
+}
+
+.tiptap-editor ul[data-type="taskList"] li[data-checked="true"] > div {
+  color: var(--muted);
+  text-decoration: line-through;
+}
+
+.tiptap-editor img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  border-radius: 12px;
+  margin: 1em 0;
+}
+
+.tiptap-editor img.ProseMirror-selectednode {
+  outline: 3px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* Tables */
+.tiptap-editor .tableWrapper {
+  overflow-x: auto;
+  margin: 1em 0;
+}
+
+.tiptap-editor table {
+  border-collapse: collapse;
+  table-layout: fixed;
+  width: 100%;
+  overflow: hidden;
+  border-radius: 8px;
+}
+
+.tiptap-editor th,
+.tiptap-editor td {
+  border: 1px solid var(--border);
+  padding: 0.45em 0.7em;
+  vertical-align: top;
+  min-width: 4em;
+  position: relative;
+}
+
+.tiptap-editor th {
+  background: var(--surface-secondary);
+  font-weight: 600;
+  text-align: left;
+}
+
+.tiptap-editor .selectedCell::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: color-mix(in oklab, var(--accent) 14%, transparent);
+  pointer-events: none;
+}
+
+.tiptap-editor .column-resize-handle {
+  position: absolute;
+  right: -2px;
+  top: 0;
+  bottom: -2px;
+  width: 4px;
+  background: var(--accent);
+  pointer-events: none;
+}
+
+.tiptap-editor.resize-cursor {
+  cursor: col-resize;
+}
+
+/* Placeholders (Placeholder extension marks empty nodes) */
+.tiptap-editor p.is-empty::before,
+.tiptap-editor h1.is-empty::before,
+.tiptap-editor h2.is-empty::before,
+.tiptap-editor h3.is-empty::before,
+.tiptap-editor h4.is-empty::before {
+  content: attr(data-placeholder);
+  float: left;
+  height: 0;
+  pointer-events: none;
+  color: color-mix(in oklab, var(--foreground) 32%, transparent);
+}
+
+.tiptap-editor p.is-empty:not(.is-editor-empty)::before {
+  content: none;
+}
+
+.tiptap-editor p.is-empty:not(.is-editor-empty):focus-within::before,
+.tiptap-editor .has-focus.is-empty::before {
+  content: attr(data-placeholder);
 }
 
 .comment-mark {
-  background-color: rgb(250 204 21 / 30%);
-  border-bottom: 1px solid rgb(202 138 4 / 60%);
+  background-color: rgb(250 204 21 / 28%);
+  border-bottom: 2px solid rgb(234 179 8 / 70%);
   cursor: pointer;
 }
 
@@ -54,15 +260,18 @@
 
 .collaboration-carets__label {
   position: absolute;
-  top: -1.4em;
+  top: -1.45em;
   left: -1px;
-  font-size: 12px;
+  font-family: var(--font-sans);
+  font-size: 11px;
   font-style: normal;
   font-weight: 600;
+  letter-spacing: 0;
   line-height: normal;
+  text-transform: none;
   user-select: none;
   color: #fff;
   padding: 2px 6px;
-  border-radius: 3px 3px 3px 0;
+  border-radius: 4px 4px 4px 0;
   white-space: nowrap;
 }

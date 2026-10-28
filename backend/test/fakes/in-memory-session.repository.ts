@@ -20,4 +20,18 @@ export class InMemorySessionRepository extends SessionRepository {
       if (session.userId === userId) session.revoke();
     }
   }
+
+  async revokeAllForUserExcept(
+    userId: string,
+    keepRefreshTokenHash: string | null,
+  ): Promise<void> {
+    for (const session of this.sessions.values()) {
+      if (
+        session.userId === userId &&
+        session.refreshTokenHash !== keepRefreshTokenHash
+      ) {
+        session.revoke();
+      }
+    }
+  }
 }

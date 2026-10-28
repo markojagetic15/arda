@@ -19,6 +19,16 @@ export class InMemoryProjectRepository extends ProjectRepository {
     return space ? project : null;
   }
 
+  async findById(id: string): Promise<Project | null> {
+    return this.projects.get(id) ?? null;
+  }
+
+  async findByIds(ids: string[]): Promise<Project[]> {
+    return ids
+      .map((id) => this.projects.get(id))
+      .filter((p): p is Project => !!p);
+  }
+
   async findSiblings(spaceId: string): Promise<Project[]> {
     return [...this.projects.values()]
       .filter(

@@ -65,7 +65,7 @@ describe('password reset flow', () => {
     await requestReset.execute({ email: 'jane@example.com' });
     expect(mailer.sent).toHaveLength(1);
 
-    const resetUrl = new URL(mailer.sent[0].resetUrl);
+    const resetUrl = new URL(mailer.lastLink());
     const token = resetUrl.searchParams.get('token')!;
     expect(token).toHaveLength(64);
 
@@ -86,7 +86,7 @@ describe('password reset flow', () => {
     const session = await issueSession.execute({ user: user! });
 
     await requestReset.execute({ email: 'jane@example.com' });
-    const token = new URL(mailer.sent[0].resetUrl).searchParams.get('token')!;
+    const token = new URL(mailer.lastLink()).searchParams.get('token')!;
     await resetPassword.execute({ token, newPassword: 'new-password' });
 
     const revokedSession = await sessionRepository.findByRefreshTokenHash(

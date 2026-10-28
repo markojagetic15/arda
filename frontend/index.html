@@ -4,11 +4,16 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Arda</title>
+    <meta name="theme-color" content="#5b4cf0" />
+    <meta name="description" content="proarda - documents, whiteboards and task boards in one live workspace." />
+    <meta property="og:title" content="proarda" />
+    <meta property="og:description" content="Documents, whiteboards and task boards in one live workspace." />
+    <title>proarda</title>
     <script>
       // Applied before React mounts, so there's no flash of the wrong theme.
       ;(function () {
-        var stored = localStorage.getItem('arda-theme-preference')
+        var stored = null
+        try { stored = localStorage.getItem('proarda-theme-preference') } catch (e) {}
         var prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
         var isDark = stored === 'dark' || (stored !== 'light' && prefersDark)
         document.documentElement.classList.toggle('dark', isDark)

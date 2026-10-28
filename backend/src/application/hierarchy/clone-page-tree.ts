@@ -11,8 +11,8 @@ function buildIdMap(pages: Page[]): Map<string, string> {
 }
 
 /**
- * Clones every page belonging to a project — a forest of one or more root
- * pages plus their descendants — into a fresh, empty target project.
+ * Clones every page belonging to a project - a forest of one or more root
+ * pages plus their descendants - into a fresh, empty target project.
  */
 export function clonePageForest(
   sourcePages: Page[],

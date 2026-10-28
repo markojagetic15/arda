@@ -14,7 +14,7 @@ export interface CommentProps {
 
 /**
  * All comments sharing one (pageId, anchorType, anchorId) form a single flat,
- * chronological thread — there is no separate "thread" entity. `resolved`
+ * chronological thread - there is no separate "thread" entity. `resolved`
  * only carries meaning on a thread's first (earliest) comment; see the
  * frontend's `isThreadResolved`.
  */

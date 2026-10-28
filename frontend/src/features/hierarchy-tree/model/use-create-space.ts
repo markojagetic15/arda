@@ -12,5 +12,7 @@ export function useCreateSpace() {
         data ? { nodes: [...data.nodes, space] } : { nodes: [space] },
       )
     },
+    // The server decides the creator's role on the new nodes.
+    onSettled: () => queryClient.invalidateQueries({ queryKey: HIERARCHY_TREE_QUERY_KEY }),
   })
 }

@@ -6,6 +6,7 @@ import { PasswordHasher } from '../../../domain/shared/ports/password-hasher.por
 import { EmailAlreadyInUseError } from '../../../domain/user/user.errors.js';
 import { User } from '../../../domain/user/user.model.js';
 import { UserRepository } from '../../../domain/user/user.repository.js';
+import { SendEmailVerificationUseCase } from '../../user/use-cases/send-email-verification.use-case.js';
 import {
   IssuedSession,
   IssueSessionUseCase,
@@ -21,6 +22,7 @@ export class RegisterUserUseCase {
     private readonly userRepository: UserRepository,
     private readonly passwordHasher: PasswordHasher,
     private readonly issueSession: IssueSessionUseCase,
+    private readonly sendEmailVerification: SendEmailVerificationUseCase,
   ) {}
 
   async execute(input: {
@@ -45,6 +47,7 @@ export class RegisterUserUseCase {
       passwordHash,
     });
     await this.userRepository.save(user);
+    await this.sendEmailVerification.execute(user);
 
     const session = await this.issueSession.execute({
       user,

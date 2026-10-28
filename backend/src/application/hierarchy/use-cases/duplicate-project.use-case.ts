@@ -7,7 +7,10 @@ import { Page } from '../../../domain/hierarchy/page.model.js';
 import { PageRepository } from '../../../domain/hierarchy/page.repository.js';
 import { Project } from '../../../domain/hierarchy/project.model.js';
 import { ProjectRepository } from '../../../domain/hierarchy/project.repository.js';
+import { DocumentSnapshotRepository } from '../../../domain/collaboration/document-snapshot.repository.js';
+import { AccessService } from '../../access/access.service.js';
 import { clonePageForest } from '../clone-page-tree.js';
+import { copySnapshots } from '../copy-snapshots.js';
 import { planPosition } from '../position-planner.js';
 
 export interface DuplicateProjectResult {
@@ -21,15 +24,18 @@ export class DuplicateProjectUseCase {
   constructor(
     private readonly projectRepository: ProjectRepository,
     private readonly pageRepository: PageRepository,
+    private readonly snapshotRepository: DocumentSnapshotRepository,
+    private readonly access: AccessService,
   ) {}
 
   async execute(input: {
     ownerId: string;
     projectId: string;
   }): Promise<DuplicateProjectResult> {
-    const source = await this.projectRepository.findByIdForOwner(
-      input.projectId,
+    const source = await this.access.projectFor(
       input.ownerId,
+      input.projectId,
+      'edit',
     );
     if (!source) {
       throw new ProjectNotFoundError();
@@ -61,6 +67,7 @@ export class DuplicateProjectUseCase {
     ]);
     const clonedPages = clonePageForest(sourcePages, clonedProject.id);
     await this.pageRepository.saveMany(clonedPages);
+    await copySnapshots(this.snapshotRepository, sourcePages, clonedPages);
 
     return { project: clonedProject, pages: clonedPages };
   }

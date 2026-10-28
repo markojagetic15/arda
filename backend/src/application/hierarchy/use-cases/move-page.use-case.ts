@@ -7,10 +7,11 @@ import {
 import { Page } from '../../../domain/hierarchy/page.model.js';
 import { PageRepository } from '../../../domain/hierarchy/page.repository.js';
 import { ProjectRepository } from '../../../domain/hierarchy/project.repository.js';
+import { AccessService } from '../../access/access.service.js';
 import { planPosition } from '../position-planner.js';
 
 /**
- * `targetParentId` is deliberately ambiguous — it names either the project
+ * `targetParentId` is deliberately ambiguous - it names either the project
  * the page should root under, or an existing page it should nest under.
  */
 @Injectable()
@@ -18,6 +19,7 @@ export class MovePageUseCase {
   constructor(
     private readonly projectRepository: ProjectRepository,
     private readonly pageRepository: PageRepository,
+    private readonly access: AccessService,
   ) {}
 
   async execute(input: {
@@ -26,17 +28,15 @@ export class MovePageUseCase {
     targetParentId: string;
     index: number;
   }): Promise<Page> {
-    const page = await this.pageRepository.findByIdForOwner(
-      input.pageId,
-      input.ownerId,
-    );
+    const page = await this.access.pageFor(input.ownerId, input.pageId, 'edit');
     if (!page) {
       throw new PageNotFoundError();
     }
 
-    const targetProject = await this.projectRepository.findByIdForOwner(
-      input.targetParentId,
+    const targetProject = await this.access.projectFor(
       input.ownerId,
+      input.targetParentId,
+      'edit',
     );
 
     let targetProjectId: string;
@@ -46,9 +46,10 @@ export class MovePageUseCase {
       targetProjectId = targetProject.id;
       targetParentPageId = null;
     } else {
-      const targetParentPage = await this.pageRepository.findByIdForOwner(
-        input.targetParentId,
+      const targetParentPage = await this.access.pageFor(
         input.ownerId,
+        input.targetParentId,
+        'edit',
       );
       if (!targetParentPage) {
         throw new PageNotFoundError();

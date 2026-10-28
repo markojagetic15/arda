@@ -1,10 +1,12 @@
-import type { KanbanCard } from '../model/types'
+import type { Comment } from '@/shared/lib/comments'
 
-export function KanbanCardPreview({ card }: { card: KanbanCard }) {
+import type { KanbanCard, KanbanLabel } from '../model/types'
+import { KanbanCardFace } from './kanban-card'
+
+export function KanbanCardPreview(props: { card: KanbanCard; labels: KanbanLabel[]; comments: Comment[] }) {
   return (
-    <div className="rounded-md border border-current/10 bg-background p-2 shadow-lg">
-      <p className="text-sm font-medium">{card.title}</p>
-      {card.description ? <p className="mt-1 text-xs opacity-80">{card.description}</p> : null}
+    <div className="w-72 rotate-2 cursor-grabbing rounded-xl border border-accent/40 bg-surface p-3 shadow-2xl">
+      <KanbanCardFace {...props} />
     </div>
   )
 }

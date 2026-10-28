@@ -40,7 +40,9 @@ export function RenameInput({ defaultValue, onCommit, onCancel }: RenameInputPro
         }
       }}
       onClick={(event) => event.stopPropagation()}
-      className="min-w-0 flex-1 rounded border border-current/30 bg-transparent px-1 py-0.5 text-sm outline-none"
+      onPointerDown={(event) => event.stopPropagation()}
+      onDoubleClick={(event) => event.stopPropagation()}
+      className="ml-1 h-6 min-w-0 flex-1 rounded-md border border-accent bg-field px-1.5 text-sm font-normal text-foreground outline-none"
     />
   )
 }

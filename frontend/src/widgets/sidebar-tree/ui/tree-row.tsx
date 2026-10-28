@@ -1,22 +1,22 @@
-import { IconChevronDown, IconChevronRight } from '@heroui/react'
-import { useSortable } from '@dnd-kit/sortable'
-import { CSS } from '@dnd-kit/utilities'
+import { useDraggable, useDroppable } from '@dnd-kit/core'
+import { ChevronRight, Eye, MoreHorizontal, Plus } from 'lucide-react'
 import type { CSSProperties } from 'react'
 
-import { NodeContextMenu } from '@/features/hierarchy-tree'
+import { hasRole, NodeGlyph } from '@/entities/hierarchy-node'
+import { AddPageMenu, NodeContextMenu, useCreateAndOpen } from '@/features/hierarchy-tree'
 
 import type { DropPosition } from '../lib/drop-target'
 import type { FlatNode } from '../lib/flatten-tree'
-import { DragHandleGlyph, NodeIcon } from './node-icon'
 import { RenameInput } from './rename-input'
 
-const INDENT_PX = 18
+const INDENT_PX = 14
 
 interface TreeRowProps {
   node: FlatNode
   isCollapsed: boolean
   isRenaming: boolean
   isSelected: boolean
+  isDragging: boolean
   dropIndicator: DropPosition | null
   onToggleCollapse: () => void
   onSelectRow: () => void
@@ -25,13 +25,18 @@ interface TreeRowProps {
   onCancelRename: () => void
   onRequestDelete: () => void
   onRequestMove: () => void
+  onCreated: (parentId: string) => void
 }
+
+const ACTION_BUTTON =
+  'flex h-6 w-6 items-center justify-center rounded-md text-muted hover:bg-default hover:text-foreground'
 
 export function TreeRow({
   node,
   isCollapsed,
   isRenaming,
   isSelected,
+  isDragging,
   dropIndicator,
   onToggleCollapse,
   onSelectRow,
@@ -40,93 +45,109 @@ export function TreeRow({
   onCancelRename,
   onRequestDelete,
   onRequestMove,
+  onCreated,
 }: TreeRowProps) {
-  const { attributes, listeners, setNodeRef, setActivatorNodeRef, transform, transition, isDragging } = useSortable({
-    id: node.id,
-    data: { node },
-  })
+  const canEdit = hasRole(node.role, 'edit')
+  // Rows stay in place while dragging; only the DragOverlay preview moves.
+  const draggable = useDraggable({ id: node.id, disabled: isRenaming || !canEdit })
+  const droppable = useDroppable({ id: node.id })
+  const create = useCreateAndOpen(onCreated)
 
-  const style: CSSProperties = {
-    transform: CSS.Translate.toString(transform),
-    transition: transition ?? undefined,
-    paddingLeft: node.depth * INDENT_PX,
-  }
+  const style: CSSProperties = { paddingLeft: 6 + node.depth * INDENT_PX }
+  const isSpace = node.kind === 'space'
 
   return (
     <div
-      ref={setNodeRef}
+      ref={(element) => {
+        draggable.setNodeRef(element)
+        droppable.setNodeRef(element)
+      }}
       style={style}
-      className={`group relative flex items-center gap-1 rounded-md py-1 pr-1 hover:bg-current/5 ${
+      {...draggable.attributes}
+      {...draggable.listeners}
+      onClick={onSelectRow}
+      onDoubleClick={canEdit ? onStartRename : undefined}
+      className={`group relative flex h-8 cursor-pointer items-center gap-1 rounded-lg pr-1 text-sm outline-none select-none focus-visible:ring-2 focus-visible:ring-accent ${
         isDragging ? 'opacity-40' : ''
-      } ${isSelected ? 'bg-current/10' : ''} ${
-        dropIndicator === 'inside' ? 'outline outline-2 outline-offset-[-2px] outline-blue-500' : ''
+      } ${
+        isSelected
+          ? 'bg-accent-soft font-medium text-accent'
+          : 'text-foreground/85 hover:bg-default/70 hover:text-foreground'
+      } ${isSpace ? 'mt-2 font-semibold first:mt-0' : ''} ${
+        dropIndicator === 'inside' ? 'ring-2 ring-accent ring-inset' : ''
       }`}
     >
       {dropIndicator === 'before' ? (
-        <div className="pointer-events-none absolute inset-x-2 top-0 h-0.5 -translate-y-px rounded bg-blue-500" />
+        <div className="pointer-events-none absolute inset-x-2 top-0 h-0.5 -translate-y-px rounded bg-accent" />
       ) : null}
       {dropIndicator === 'after' ? (
-        <div className="pointer-events-none absolute inset-x-2 bottom-0 h-0.5 translate-y-px rounded bg-blue-500" />
+        <div className="pointer-events-none absolute inset-x-2 bottom-0 h-0.5 translate-y-px rounded bg-accent" />
       ) : null}
 
       <button
-        ref={setActivatorNodeRef}
-        {...attributes}
-        {...listeners}
         type="button"
-        aria-label="Drag to reorder"
-        className="flex h-5 w-3 shrink-0 cursor-grab touch-none items-center justify-center opacity-0 group-hover:opacity-60"
+        tabIndex={-1}
+        onClick={(event) => {
+          event.stopPropagation()
+          onToggleCollapse()
+        }}
+        onPointerDown={(event) => event.stopPropagation()}
+        aria-label={isCollapsed ? 'Expand' : 'Collapse'}
+        className={`flex h-5 w-4 shrink-0 items-center justify-center rounded text-muted hover:text-foreground ${
+          node.hasChildren ? '' : 'invisible'
+        }`}
       >
-        <DragHandleGlyph className="h-3 w-3" />
+        <ChevronRight className={`h-3.5 w-3.5 transition-transform ${isCollapsed ? '' : 'rotate-90'}`} />
       </button>
 
-      {node.hasChildren ? (
-        <button
-          type="button"
-          onClick={(event) => {
-            event.stopPropagation()
-            onToggleCollapse()
-          }}
-          aria-label={isCollapsed ? 'Expand' : 'Collapse'}
-          className="flex h-5 w-4 shrink-0 items-center justify-center"
-        >
-          {isCollapsed ? <IconChevronRight className="h-3 w-3" /> : <IconChevronDown className="h-3 w-3" />}
-        </button>
-      ) : (
-        <span className="w-4 shrink-0" />
-      )}
+      <NodeGlyph node={node} isOpen={node.hasChildren && !isCollapsed} />
 
       {isRenaming ? (
-        <div className="flex min-w-0 flex-1 items-center gap-1.5">
-          <NodeIcon node={node} className="h-3.5 w-3.5 shrink-0 opacity-70" />
-          <RenameInput defaultValue={node.label} onCommit={onCommitRename} onCancel={onCancelRename} />
-        </div>
+        <RenameInput defaultValue={node.label} onCommit={onCommitRename} onCancel={onCancelRename} />
       ) : (
-        <button
-          type="button"
-          onClick={onSelectRow}
-          onDoubleClick={onStartRename}
-          className="flex min-w-0 flex-1 items-center gap-1.5 text-left"
-        >
-          <NodeIcon node={node} className="h-3.5 w-3.5 shrink-0 opacity-70" />
-          <span className="truncate text-sm">{node.label}</span>
-        </button>
+        <span className="ml-1 min-w-0 flex-1 truncate">{node.label}</span>
       )}
+      {!canEdit && !isRenaming ? (
+        <span title={node.role === 'comment' ? 'You can comment' : 'View only'} className="shrink-0 text-muted group-hover:hidden">
+          <Eye className="h-3.5 w-3.5" />
+        </span>
+      ) : null}
 
       {!isRenaming ? (
-        <NodeContextMenu
-          node={node}
-          onRequestRename={onStartRename}
-          onRequestDelete={onRequestDelete}
-          onRequestMove={onRequestMove}
+        <span
+          className="flex shrink-0 items-center opacity-0 group-hover:opacity-100 group-focus-within:opacity-100"
+          onClick={(event) => event.stopPropagation()}
+          onPointerDown={(event) => event.stopPropagation()}
         >
-          <span
-            aria-hidden="true"
-            className="flex h-5 w-5 shrink-0 items-center justify-center rounded opacity-0 group-hover:opacity-100"
+          <NodeContextMenu
+            node={node}
+            onRequestRename={onStartRename}
+            onRequestDelete={onRequestDelete}
+            onRequestMove={onRequestMove}
+            onCreated={onCreated}
           >
-            ⋯
-          </span>
-        </NodeContextMenu>
+            <span className={ACTION_BUTTON} aria-hidden="true">
+              <MoreHorizontal className="h-4 w-4" />
+            </span>
+          </NodeContextMenu>
+          {!canEdit ? null : isSpace ? (
+            <button
+              type="button"
+              className={ACTION_BUTTON}
+              aria-label={`New project in ${node.label}`}
+              title="New project"
+              onClick={() => create.project(node.id)}
+            >
+              <Plus className="h-4 w-4" />
+            </button>
+          ) : (
+            <AddPageMenu parentId={node.id} onCreated={onCreated}>
+              <span className={ACTION_BUTTON} aria-hidden="true" title="Add page">
+                <Plus className="h-4 w-4" />
+              </span>
+            </AddPageMenu>
+          )}
+        </span>
       ) : null}
     </div>
   )

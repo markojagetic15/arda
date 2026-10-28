@@ -13,8 +13,8 @@ export class InvalidCredentialsError extends Error {
 }
 
 export class InvalidOrExpiredResetTokenError extends Error {
-  constructor() {
-    super('Invalid or expired password reset token');
+  constructor(message = 'Invalid or expired password reset token') {
+    super(message);
     this.name = 'InvalidOrExpiredResetTokenError';
   }
 }
@@ -23,5 +23,12 @@ export class UserNotFoundError extends Error {
   constructor() {
     super('User not found');
     this.name = 'UserNotFoundError';
+  }
+}
+
+export class IncorrectPasswordError extends Error {
+  constructor() {
+    super('Current password is incorrect');
+    this.name = 'IncorrectPasswordError';
   }
 }

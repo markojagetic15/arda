@@ -3,20 +3,21 @@ import { Injectable } from '@nestjs/common';
 import { PageNotFoundError } from '../../../domain/hierarchy/hierarchy.errors.js';
 import { Page } from '../../../domain/hierarchy/page.model.js';
 import { PageRepository } from '../../../domain/hierarchy/page.repository.js';
+import { AccessService } from '../../access/access.service.js';
 
 @Injectable()
 export class RenamePageUseCase {
-  constructor(private readonly pageRepository: PageRepository) {}
+  constructor(
+    private readonly pageRepository: PageRepository,
+    private readonly access: AccessService,
+  ) {}
 
   async execute(input: {
     ownerId: string;
     pageId: string;
     title: string;
   }): Promise<Page> {
-    const page = await this.pageRepository.findByIdForOwner(
-      input.pageId,
-      input.ownerId,
-    );
+    const page = await this.access.pageFor(input.ownerId, input.pageId, 'edit');
     if (!page) {
       throw new PageNotFoundError();
     }

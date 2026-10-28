@@ -1,7 +1,7 @@
 import { Button, Modal } from '@heroui/react'
 import { useMemo } from 'react'
 
-import { collectSubtreeIds, getSiblings, type HierarchyNode } from '@/entities/hierarchy-node'
+import { collectSubtreeIds, getSiblings, hasRole, type HierarchyNode } from '@/entities/hierarchy-node'
 
 import { useMoveNode } from '../model/use-move-node'
 
@@ -17,12 +17,15 @@ export function MoveToDialog({ node, nodes, onClose }: MoveToDialogProps) {
   const targets = useMemo(() => {
     if (!node) return []
     if (node.kind === 'project') {
-      return nodes.filter((candidate) => candidate.kind === 'space')
+      return nodes.filter((candidate) => candidate.kind === 'space' && hasRole(candidate.role, 'edit'))
     }
     if (node.kind === 'page') {
       const excluded = collectSubtreeIds(nodes, node.id)
       return nodes.filter(
-        (candidate) => (candidate.kind === 'project' || candidate.kind === 'page') && !excluded.has(candidate.id),
+        (candidate) =>
+          (candidate.kind === 'project' || candidate.kind === 'page') &&
+          !excluded.has(candidate.id) &&
+          hasRole(candidate.role, 'edit'),
       )
     }
     return []

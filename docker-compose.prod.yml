@@ -1,0 +1,112 @@
+# Arda — production on the VPS: backend (NestJS) + frontend (static SPA) +
+# its own Postgres + Redis. Public traffic arrives via the shared Caddy proxy
+# (/var/www/proxy) over the external `web` network; routing/TLS for this site
+# lives in ./caddy/site.caddy. (docker-compose.yml next to this file is the
+# local-dev one: Postgres + Redis only.)
+#
+# ./.env sets COMPOSE_FILE=docker-compose.prod.yml, so on the server plain
+# `docker compose …` in this folder uses this file:
+#   docker compose up -d --build            # (re)deploy everything
+#   docker compose up -d --build backend    # just one service
+#   docker compose logs -f backend
+#   docker compose exec db psql -U arda arda
+
+name: arda
+
+x-logging: &default-logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "3"
+
+networks:
+  default: {}
+  web:
+    external: true
+
+volumes:
+  db_data:
+
+services:
+  db:
+    image: postgres:17-alpine
+    logging: *default-logging
+    restart: always
+    environment:
+      POSTGRES_USER: arda
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?set DB_PASSWORD in .env}
+      POSTGRES_DB: arda
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    # No published port: only this project's containers can reach it.
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U arda -d arda"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Pub/sub only (Socket.io adapter + Yjs update relay) — nothing to persist.
+  redis:
+    image: redis:8-alpine
+    logging: *default-logging
+    restart: always
+    command: ["redis-server", "--save", "", "--appendonly", "no"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build: ./backend
+    logging: *default-logging
+    restart: always
+    volumes:
+      # Images uploaded into pages - persists across rebuilds; backed up.
+      - ./uploads:/app/uploads
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      UPLOAD_DIR: /app/uploads
+      CORS_ORIGIN: https://${ARDA_DOMAIN:?set ARDA_DOMAIN in .env}
+      FRONTEND_URL: https://${ARDA_DOMAIN}
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_USERNAME: arda
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_DATABASE: arda
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET:?set JWT_ACCESS_SECRET in .env}
+      # Email over SMTP. Until SMTP_HOST and MAIL_FROM are set, emails
+      # (invites, confirmations, password resets) are only written to the log.
+      SMTP_HOST: ${SMTP_HOST:-}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_PASS: ${SMTP_PASS:-}
+      MAIL_FROM: ${MAIL_FROM:-}
+      MAIL_REPLY_TO: ${MAIL_REPLY_TO:-}
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      default: {}
+      web:
+        # Name the proxy uses (service names alone would clash across projects).
+        aliases: [arda-backend]
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        # Same origin: Caddy routes /api/* and /socket.io/* to the backend.
+        VITE_API_URL: /api
+        VITE_WS_URL: wss://${ARDA_DOMAIN}
+    logging: *default-logging
+    restart: always
+    networks:
+      default: {}
+      web:
+        aliases: [arda-frontend]

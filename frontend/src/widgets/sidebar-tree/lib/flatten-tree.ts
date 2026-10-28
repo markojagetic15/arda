@@ -5,30 +5,48 @@ export interface FlatNode extends HierarchyNode {
   hasChildren: boolean
 }
 
-/** Depth-first flattening of the tree, skipping the subtrees of collapsed nodes. */
-export function flattenTree(nodes: HierarchyNode[], collapsedIds: Set<string>): FlatNode[] {
+export interface TreeSections {
+  /** Spaces the user owns or was given, with everything under them. */
+  spaces: FlatNode[]
+  /** Projects and pages shared with the user whose parent they can't see. */
+  shared: FlatNode[]
+}
+
+/** Depth-first flattening, skipping the subtrees of collapsed nodes. */
+export function flattenTree(nodes: HierarchyNode[], collapsedIds: Set<string>): TreeSections {
+  const ids = new Set(nodes.map((node) => node.id))
   const byParent = new Map<string | null, HierarchyNode[]>()
   for (const node of nodes) {
-    const list = byParent.get(node.parentId) ?? []
+    // A node whose parent isn't visible is a root of the "Shared with me" section.
+    const key = node.parentId !== null && ids.has(node.parentId) ? node.parentId : null
+    const list = byParent.get(key) ?? []
     list.push(node)
-    byParent.set(node.parentId, list)
+    byParent.set(key, list)
   }
   for (const list of byParent.values()) {
-    list.sort((a, b) => a.position - b.position)
+    list.sort((a, b) => a.position - b.position || a.label.localeCompare(b.label))
   }
 
-  const result: FlatNode[] = []
-
-  function visit(parentId: string | null, depth: number): void {
-    for (const node of byParent.get(parentId) ?? []) {
-      const hasChildren = (byParent.get(node.id)?.length ?? 0) > 0
-      result.push({ ...node, depth, hasChildren })
-      if (hasChildren && !collapsedIds.has(node.id)) {
-        visit(node.id, depth + 1)
-      }
+  function visit(list: HierarchyNode[], depth: number, out: FlatNode[]): void {
+    for (const node of list) {
+      const children = byParent.get(node.id) ?? []
+      out.push({ ...node, depth, hasChildren: children.length > 0 })
+      if (children.length > 0 && !collapsedIds.has(node.id)) visit(children, depth + 1, out)
     }
   }
 
-  visit(null, 0)
-  return result
+  const roots = byParent.get(null) ?? []
+  const spaces: FlatNode[] = []
+  const shared: FlatNode[] = []
+  visit(
+    roots.filter((node) => node.kind === 'space'),
+    0,
+    spaces,
+  )
+  visit(
+    roots.filter((node) => node.kind !== 'space'),
+    0,
+    shared,
+  )
+  return { spaces, shared }
 }

@@ -29,6 +29,17 @@ export class TypeOrmProjectRepository extends ProjectRepository {
     return this.toDomain(entity);
   }
 
+  async findById(id: string): Promise<Project | null> {
+    const entity = await this.repository.findOneBy({ id });
+    return entity ? this.toDomain(entity) : null;
+  }
+
+  async findByIds(ids: string[]): Promise<Project[]> {
+    if (ids.length === 0) return [];
+    const entities = await this.repository.find({ where: { id: In(ids) } });
+    return entities.map((entity) => this.toDomain(entity));
+  }
+
   async findSiblings(spaceId: string): Promise<Project[]> {
     const entities = await this.repository.find({
       where: { spaceId, parentId: IsNull() },

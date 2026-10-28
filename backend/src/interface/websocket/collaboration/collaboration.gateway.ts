@@ -13,7 +13,8 @@ import { RoomManagerService } from '../../../application/collaboration/room-mana
 import { CreateCommentUseCase } from '../../../application/comment/use-cases/create-comment.use-case.js';
 import { ListCommentsForPageUseCase } from '../../../application/comment/use-cases/list-comments-for-page.use-case.js';
 import { ResolveCommentUseCase } from '../../../application/comment/use-cases/resolve-comment.use-case.js';
-import { PageRepository } from '../../../domain/hierarchy/page.repository.js';
+import { AccessService } from '../../../application/access/access.service.js';
+import { hasRole, type Role } from '../../../domain/access/role.js';
 import { TokenService } from '../../../application/auth/ports/token.service.js';
 import type { Comment } from '../../../domain/comment/comment.model.js';
 import type { CommentAnchorType } from '../../../domain/comment/comment-anchor-type.js';
@@ -54,7 +55,7 @@ export class CollaborationGateway
   constructor(
     private readonly roomManager: RoomManagerService,
     private readonly tokenService: TokenService,
-    private readonly pageRepository: PageRepository,
+    private readonly access: AccessService,
     private readonly createComment: CreateCommentUseCase,
     private readonly listCommentsForPage: ListCommentsForPageUseCase,
     private readonly resolveComment: ResolveCommentUseCase,
@@ -100,11 +101,8 @@ export class CollaborationGateway
     const user = client.data.user as AuthenticatedUser | undefined;
     if (!user) return;
 
-    const page = await this.pageRepository.findByIdForOwner(
-      body.pageId,
-      user.userId,
-    );
-    if (!page) {
+    const role = await this.access.roleForPage(user.userId, body.pageId);
+    if (!role) {
       client.emit('error', { message: 'Page not found' });
       return;
     }
@@ -115,6 +113,7 @@ export class CollaborationGateway
     }
 
     client.data.pageId = body.pageId;
+    client.data.role = role;
     await client.join(roomName(body.pageId));
     await this.roomManager.joinRoom(body.pageId, client.id);
 
@@ -131,6 +130,21 @@ export class CollaborationGateway
     client.emit('comments-state', comments.map(toCommentDto));
   }
 
+  /**
+   * Re-sends the page's comments. Clients ask once their comment listener is
+   * attached: the copy sent with the join reply can arrive before the page's
+   * UI (and so the listener) exists, and would otherwise be lost.
+   */
+  @SubscribeMessage('comments-request')
+  async handleCommentsRequest(
+    @ConnectedSocket() client: Socket,
+  ): Promise<void> {
+    const pageId = client.data.pageId as string | undefined;
+    if (!pageId) return; // not joined yet - the join reply includes the comments
+    const comments = await this.listCommentsForPage.execute(pageId);
+    client.emit('comments-state', comments.map(toCommentDto));
+  }
+
   @SubscribeMessage('comment-create')
   async handleCommentCreate(
     @ConnectedSocket() client: Socket,
@@ -140,6 +154,10 @@ export class CollaborationGateway
     const pageId = client.data.pageId as string | undefined;
     const user = client.data.user as AuthenticatedUser | undefined;
     if (!pageId || !user || !body.body.trim()) return;
+    if (!hasRole(client.data.role as Role, 'comment')) {
+      client.emit('error', { message: "You can't comment on this page" });
+      return;
+    }
 
     const comment = await this.createComment.execute({
       pageId,
@@ -148,7 +166,9 @@ export class CollaborationGateway
       anchorId: body.anchorId,
       body: body.body,
     });
-    this.server.to(roomName(pageId)).emit('comment-created', toCommentDto(comment));
+    this.server
+      .to(roomName(pageId))
+      .emit('comment-created', toCommentDto(comment));
   }
 
   @SubscribeMessage('comment-resolve')
@@ -157,7 +177,7 @@ export class CollaborationGateway
     @MessageBody() body: { commentId: string; resolved: boolean },
   ): Promise<void> {
     const pageId = client.data.pageId as string | undefined;
-    if (!pageId) return;
+    if (!pageId || !hasRole(client.data.role as Role, 'comment')) return;
 
     try {
       const comment = await this.resolveComment.execute({
@@ -165,9 +185,10 @@ export class CollaborationGateway
         commentId: body.commentId,
         resolved: body.resolved,
       });
-      this.server
-        .to(roomName(pageId))
-        .emit('comment-resolved', { id: comment.id, resolved: comment.resolved });
+      this.server.to(roomName(pageId)).emit('comment-resolved', {
+        id: comment.id,
+        resolved: comment.resolved,
+      });
     } catch {
       client.emit('error', { message: 'Comment not found' });
     }
@@ -179,7 +200,9 @@ export class CollaborationGateway
     @MessageBody() update: Buffer,
   ): void {
     const pageId = client.data.pageId as string | undefined;
-    if (!pageId) return;
+    // Viewers and commenters get the document but can't change it; their
+    // clients are read-only, and anything they send anyway is dropped here.
+    if (!pageId || !hasRole(client.data.role as Role, 'edit')) return;
     client.to(roomName(pageId)).emit('sync-update', update);
     this.roomManager.applyLocalSyncUpdate(pageId, new Uint8Array(update));
   }

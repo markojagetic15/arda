@@ -12,5 +12,7 @@ export function useDuplicateNode() {
         data ? { nodes: [...data.nodes, ...newNodes] } : { nodes: newNodes },
       )
     },
+    // The server decides the creator's role on the new nodes.
+    onSettled: () => queryClient.invalidateQueries({ queryKey: HIERARCHY_TREE_QUERY_KEY }),
   })
 }

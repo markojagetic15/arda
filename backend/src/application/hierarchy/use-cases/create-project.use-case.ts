@@ -10,6 +10,7 @@ import { POSITION_GAP } from '../../../domain/hierarchy/position.js';
 import { Project } from '../../../domain/hierarchy/project.model.js';
 import { ProjectRepository } from '../../../domain/hierarchy/project.repository.js';
 import { SpaceRepository } from '../../../domain/hierarchy/space.repository.js';
+import { AccessService } from '../../access/access.service.js';
 import { planPosition } from '../position-planner.js';
 
 const DEFAULT_PAGES = [
@@ -30,6 +31,7 @@ export class CreateProjectUseCase {
     private readonly spaceRepository: SpaceRepository,
     private readonly projectRepository: ProjectRepository,
     private readonly pageRepository: PageRepository,
+    private readonly access: AccessService,
   ) {}
 
   async execute(input: {
@@ -37,9 +39,10 @@ export class CreateProjectUseCase {
     spaceId: string;
     name: string;
   }): Promise<CreateProjectResult> {
-    const space = await this.spaceRepository.findByIdForOwner(
-      input.spaceId,
+    const space = await this.access.spaceFor(
       input.ownerId,
+      input.spaceId,
+      'edit',
     );
     if (!space) {
       throw new SpaceNotFoundError();

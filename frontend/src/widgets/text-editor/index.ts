@@ -1,2 +1,6 @@
 export { useTiptapEditor } from './model/use-tiptap-editor'
 export { RichTextEditor } from './ui/rich-text-editor'
+export { EditorToolbar } from './ui/editor-toolbar'
+export { FormatPanel } from './ui/format-panel'
+export { SelectionBubble } from './ui/selection-bubble'
+export { UploadStatusBar } from './ui/upload-status-bar'

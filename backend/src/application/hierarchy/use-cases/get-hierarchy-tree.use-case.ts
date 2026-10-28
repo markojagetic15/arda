@@ -1,34 +1,29 @@
 import { Injectable } from '@nestjs/common';
 
+import type { Role } from '../../../domain/access/role.js';
 import { Page } from '../../../domain/hierarchy/page.model.js';
-import { PageRepository } from '../../../domain/hierarchy/page.repository.js';
 import { Project } from '../../../domain/hierarchy/project.model.js';
-import { ProjectRepository } from '../../../domain/hierarchy/project.repository.js';
 import { Space } from '../../../domain/hierarchy/space.model.js';
-import { SpaceRepository } from '../../../domain/hierarchy/space.repository.js';
+import { AccessService } from '../../access/access.service.js';
 
 export interface HierarchyTree {
   spaces: Space[];
   projects: Project[];
   pages: Page[];
+  /** The user's role on every returned node, by id. */
+  roles: Map<string, Role>;
 }
 
+/**
+ * Everything the user can see: their own spaces plus whatever was shared
+ * with them. A shared project or page whose parent the user can't see comes
+ * back without that parent - the client shows it under "Shared with me".
+ */
 @Injectable()
 export class GetHierarchyTreeUseCase {
-  constructor(
-    private readonly spaceRepository: SpaceRepository,
-    private readonly projectRepository: ProjectRepository,
-    private readonly pageRepository: PageRepository,
-  ) {}
+  constructor(private readonly access: AccessService) {}
 
   async execute(input: { ownerId: string }): Promise<HierarchyTree> {
-    const spaces = await this.spaceRepository.findAllForOwner(input.ownerId);
-    const projects = await this.projectRepository.findAllForSpaces(
-      spaces.map((space) => space.id),
-    );
-    const pages = await this.pageRepository.findAllForProjects(
-      projects.map((project) => project.id),
-    );
-    return { spaces, projects, pages };
+    return this.access.accessibleTree(input.ownerId);
   }
 }

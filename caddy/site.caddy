@@ -1,0 +1,37 @@
+# Arda — imported by the shared proxy (/var/www/proxy/Caddyfile).
+# TLS is automatic (Let's Encrypt, renewed by Caddy). Upstream names are the
+# `web`-network aliases from ../docker-compose.prod.yml.
+# After editing: cd /var/www/proxy && docker compose exec caddy caddy reload --config /etc/caddy/Caddyfile
+#
+# The domain must match ARDA_DOMAIN in ../.env (CORS origin, reset-email
+# links, and the WebSocket URL baked into the frontend build).
+
+# www and the old temporary sslip.io hostname → apex, so cookies and the
+# CORS origin are one host.
+www.proarda.com, arda.217-76-62-35.sslip.io {
+	redir https://proarda.com{uri} permanent
+}
+
+proarda.com {
+	encode zstd gzip
+
+	header {
+		Strict-Transport-Security "max-age=31536000"
+		X-Content-Type-Options "nosniff"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		X-Frame-Options "DENY"
+		-Server
+		defer
+	}
+
+	# REST API (global prefix /api) and the realtime collaboration socket
+	# (socket.io's default path; Caddy proxies the WebSocket upgrade itself).
+	@backend path /api/* /socket.io/*
+	handle @backend {
+		reverse_proxy arda-backend:3000
+	}
+
+	handle {
+		reverse_proxy arda-frontend:80
+	}
+}
